@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Study Agent (Claude)</title>
+    <style>
+      :root{
+        /* Surfaces */
+        --surface:#131313;
+        --surfaceContainerLow:#1C1B1B;
+        --surfaceContainer:#201F1F;
+        --surfaceContainerHigh:#2A2A2A;
+        --surfaceContainerHighest:#353534;
+        --surfaceContainerLowest:#0E0E0E;
+
+        /* Variants */
+        --surfaceVariant:#353534;
+        --outlineVariant:#494455; /* ghost border color @15% opacity */
+
+        /* Typography */
+        --onSurface:#E5E2E1;
+        --onSurfaceVariant:rgba(229,226,225,.72);
+
+        /* Brand */
+        --primary:#D0BCFF;
+        --primaryContainer:#733EE4;
+        --secondaryContainer:#5417BE;
+
+        /* Connection / feedback */
+        --error:#ef4444;
+        --success:#34d399;
+
+        /* Glass */
+        --glassBg: rgba(53,53,52,.6);
+      }
+
+      *{ box-sizing:border-box; }
+
+      body{
+        margin:0;
+        background:var(--surface);
+        color:var(--onSurface);
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      .banner{
+        display:none;
+        padding:12px 16px;
+        margin:12px;
+        border-radius:14px;
+        background: rgba(239,68,68,.12);
+        outline: 1px solid rgba(239,68,68,.35);
+        color: rgba(229,226,225,.92);
+        font-weight:700;
+      }
+
+      .layout{
+        display:flex;
+        gap:14px;
+        padding:14px;
+        height: calc(100vh - 28px);
+        background: var(--surface);
+      }
+
+      .left{
+        width:30%;
+        min-width:320px;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        min-height:0;
+      }
+
+      .left > .card{
+        flex:1;
+        min-height:0;
+        display:flex;
+        flex-direction:column;
+        overflow:hidden;
+      }
+
+      .right{
+        width:70%;
+        min-width:520px;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+      }
+
+      .card{
+        background: var(--surfaceContainerLowest);
+        border-radius:14px;
+        padding:12px;
+        outline: 1px solid rgba(73,68,85,.15); /* Ghost Border */
+      }
+
+      button{
+        border:0;
+        background: var(--surfaceContainerHighest); /* Secondary-style by default */
+        color: var(--onSurface);
+        padding:10px 12px;
+        border-radius: 0.375rem; /* md */
+        cursor:pointer;
+        font-weight:700;
+        outline: 1px solid rgba(73,68,85,.15); /* Ghost Border */
+      }
+
+      button:disabled{
+        opacity:.55;
+        cursor:not-allowed;
+      }
+
+      button:focus-visible{
+        outline: 2px solid rgba(208,188,255,.35);
+        outline-offset: 2px;
+      }
+
+      .primary{
+        background: linear-gradient(135deg, var(--primary), var(--primaryContainer));
+        color: #23005C; /* on-primary-fixed */
+        outline: none;
+      }
+
+      .row{
+        display:flex;
+        gap:10px;
+        align-items:center;
+      }
+
+      input[type="text"], input[type="password"], textarea{
+        width:100%;
+        border:0;
+        background: var(--surfaceContainerLowest);
+        border-radius: 0.75rem;
+        padding:10px 12px;
+        color: var(--onSurface);
+        outline: 1px solid rgba(73,68,85,.15);
+        font-family: inherit;
+      }
+
+      textarea{
+        resize:vertical;
+        min-height:90px;
+      }
+
+      input[type="text"]:focus, input[type="password"]:focus, textarea:focus{
+        outline: 2px solid rgba(208,188,255,.22);
+        box-shadow: 0 0 0 4px rgba(208,188,255,.10); /* subtle primary glow */
+      }
+
+      .meta{
+        color: var(--onSurfaceVariant);
+        font-size: 0.875rem; /* label-md-ish */
+        line-height:1.3;
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+        letter-spacing: 0.01em;
+      }
+
+      .warning{
+        outline: 1px solid rgba(180,134,11,.35);
+        background: rgba(180,134,11,.10);
+        color: rgba(229,226,225,.92);
+        border-radius:12px;
+        padding:10px 12px;
+        font-weight:800;
+        font-size:0.875rem;
+      }
+
+      .list{
+        background: var(--surfaceContainerLow);
+        border-radius:14px;
+        padding:12px;
+        overflow:auto;
+        flex:1;
+        min-height:0;
+        outline: 1px solid rgba(73,68,85,.15);
+      }
+
+      .noteItem{
+        display:flex;
+        gap:10px;
+        align-items:flex-start;
+        padding:12px 10px;
+        border-radius:12px;
+        margin-bottom: 1rem;
+      }
+
+      .noteItem:hover{
+        background: rgba(53,53,52,.8);
+      }
+
+      .noteItem input{
+        margin-top:2px;
+        accent-color: var(--primary);
+      }
+
+      .noteTitle{
+        font-weight:800;
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+      }
+
+      .notePath{
+        color: var(--onSurfaceVariant);
+        font-size: 0.85rem;
+        word-break:break-word;
+      }
+
+      .chatWrap{
+        background: var(--glassBg);
+        backdrop-filter: blur(12px);
+        border-radius:14px;
+        padding:12px;
+        flex:1;
+        overflow:auto;
+        outline: 1px solid rgba(73,68,85,.15);
+      }
+
+      .emptyState{
+        color: var(--onSurfaceVariant);
+        font-weight:800;
+        padding:14px 6px;
+      }
+
+      .spinner{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:8px 6px;
+        color: var(--onSurfaceVariant);
+        font-weight:800;
+      }
+
+      .spinnerDot{
+        width:10px;
+        height:10px;
+        border-radius:999px;
+        background: var(--primary);
+        animation: bounce 1s infinite ease-in-out;
+      }
+
+      @keyframes bounce{
+        0%,100%{ transform: translateY(0); opacity:.65;}
+        50%{ transform: translateY(-5px); opacity:1;}
+      }
+
+      .msgRow{
+        display:flex;
+        margin:10px 0;
+      }
+
+      .msgRow.assistant{
+        justify-content:flex-start;
+      }
+
+      .msgRow.user{
+        justify-content:flex-end;
+      }
+
+      .msg{
+        max-width:80%;
+        border-radius:14px;
+        background: rgba(42,42,42,.75);
+        padding:10px 12px;
+        white-space:pre-wrap;
+        line-height:1.6;
+        outline: 1px solid rgba(73,68,85,.12);
+      }
+
+      .msg.user{
+        background: rgba(208,188,255,.10);
+      }
+
+      .msg.connection{
+        background: rgba(208,188,255,.10);
+        position:relative;
+        padding-left:14px;
+        outline: 1px solid rgba(208,188,255,.22);
+      }
+
+      .msg.connection::before{
+        content:"";
+        position:absolute;
+        left:0;
+        top:0;
+        bottom:0;
+        width:4px;
+        background: var(--primary);
+        border-radius:14px 0 0 14px;
+      }
+
+      .badge{
+        display:inline-block;
+        border:0;
+        background: rgba(84,23,190,.55); /* secondaryContainer vibe */
+        color: rgba(229,226,225,.95);
+        padding:2px 10px;
+        border-radius:999px; /* full */
+        font-size:0.8rem;
+        font-weight:900;
+        margin-bottom:6px;
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+      }
+
+      .errorCard{
+        outline: 1px solid rgba(239,68,68,.35);
+        background: rgba(239,68,68,.10);
+        border-radius:14px;
+        color: rgba(229,226,225,.95);
+        font-weight:800;
+      }
+
+      .composer{
+        display:flex;
+        gap:10px;
+        align-items:flex-start;
+      }
+
+      .composerLeft{
+        flex:1;
+      }
+
+      .composerActions{
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+      }
+
+      .endBtn{
+        outline: 1px solid rgba(239,68,68,.55);
+        color: rgba(229,226,225,.95);
+        background: rgba(239,68,68,.04);
+      }
+
+      .hidden{ display:none !important; }
+
+      .apiKeySuccessRow{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+        padding:10px 12px;
+        border-radius:12px;
+        background: rgba(52,211,153,.10);
+        outline: 1px solid rgba(52,211,153,.28);
+      }
+
+      .apiKeySuccessRow .checkIcon{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:22px;
+        height:22px;
+        border-radius:999px;
+        background: rgba(52,211,153,.18);
+        color: var(--success);
+        font-size:0.85rem;
+        font-weight:900;
+        line-height:1;
+        flex-shrink:0;
+      }
+
+      .apiKeySuccessRow .successLabel{
+        color: rgba(229,226,225,.92);
+        font-weight:800;
+        font-size:0.9rem;
+        flex:1;
+        min-width:160px;
+      }
+
+      .vaultLoadPanel{
+        margin-top:10px;
+        padding:12px;
+        border-radius:12px;
+        background: var(--surfaceContainer);
+        outline: 1px solid rgba(73,68,85,.15);
+      }
+
+      .vaultLoadPanel .vaultLoadTop{
+        display:flex;
+        align-items:center;
+        gap:12px;
+      }
+
+      .vaultRing{
+        width:22px;
+        height:22px;
+        border-radius:999px;
+        border:2px solid rgba(208,188,255,.22);
+        border-top-color: var(--primary);
+        animation: vaultSpin 0.85s linear infinite;
+        flex-shrink:0;
+      }
+
+      @keyframes vaultSpin{
+        to{ transform: rotate(360deg); }
+      }
+
+      .vaultProgressTrack{
+        margin-top:10px;
+        height:8px;
+        border-radius:999px;
+        background: rgba(53,53,52,.9);
+        overflow:hidden;
+        outline: 1px solid rgba(73,68,85,.12);
+      }
+
+      .vaultProgressFill{
+        height:100%;
+        width:0%;
+        border-radius:999px;
+        background: linear-gradient(90deg, var(--primary), var(--primaryContainer));
+        transition: width 0.15s ease-out;
+      }
+
+      .sortRow{
+        display:flex;
+        gap:8px;
+        align-items:center;
+        flex-wrap:wrap;
+        margin-top:10px;
+      }
+
+      .sortRow label{
+        font-size:0.875rem;
+        color: var(--onSurfaceVariant);
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight:700;
+      }
+
+      .sortRow select{
+        flex:1;
+        min-width:140px;
+        border:0;
+        background: var(--surfaceContainerLowest);
+        border-radius: 0.75rem;
+        padding:8px 10px;
+        color: var(--onSurface);
+        outline: 1px solid rgba(73,68,85,.15);
+        font-family: inherit;
+        font-weight:700;
+        cursor:pointer;
+      }
+
+      .sortRow select:focus{
+        outline: 2px solid rgba(208,188,255,.22);
+        box-shadow: 0 0 0 4px rgba(208,188,255,.10);
+      }
+
+      .kbd{
+        font-size:0.8rem;
+        color: var(--onSurfaceVariant);
+      }
+
+      .tokenRow{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        align-items:flex-start;
+        flex-wrap:wrap;
+      }
+
+      .keyRow{
+        display:flex;
+        gap:10px;
+        align-items:center;
+      }
+
+      .keyRow .keyActions{
+        display:flex;
+        gap:10px;
+        align-items:center;
+      }
+
+      .linkBtn{
+        padding:8px 10px;
+        border-radius:0.375rem;
+        font-weight:900;
+        background: transparent;
+        outline: none;
+        color: var(--primary);
+      }
+
+      .linkBtn:focus-visible{
+        outline: 2px solid rgba(208,188,255,.35);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 980px){
+        .layout{ flex-direction:column; height:auto; min-height:calc(100vh - 28px); }
+        .left,.right{ width:100%; min-width:0; }
+        .left > .card{
+          flex:1 1 auto;
+          min-height:0;
+        }
+        .list{
+          max-height:min(50vh, 420px);
+          flex:0 1 auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="unsupportedBanner" class="banner">
+      This app requires Chrome or Edge (File System Access API).
+    </div>
+
+    <div id="insecureContextBanner" class="banner">
+      This app requires a secure context (https or http://localhost) for the File System Access API.
+    </div>
+
+    <div class="layout">
+      <div class="left">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <button id="openVaultBtn">Open Vault</button>
+          </div>
+          <div id="vaultStatus" class="meta" style="margin-top:10px;"></div>
+          <div id="vaultLoadPanel" class="vaultLoadPanel hidden" aria-live="polite">
+            <div class="vaultLoadTop">
+              <div class="vaultRing" aria-hidden="true"></div>
+              <div id="vaultLoadLabel" class="meta" style="font-weight:800;">Loading notes…</div>
+            </div>
+            <div class="vaultProgressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="vaultProgressTrack">
+              <div id="vaultProgressFill" class="vaultProgressFill"></div>
+            </div>
+          </div>
+          <div id="noMdFound" class="meta" style="margin-top:10px; font-weight:700;"></div>
+
+          <div style="margin-top:12px;">
+            <input id="noteSearch" type="text" placeholder="Filter notes by name or path" autocomplete="off" />
+          </div>
+
+          <div class="sortRow">
+            <label for="noteSortOrder">Sort</label>
+            <select id="noteSortOrder" aria-label="Sort notes">
+              <option value="asc">A → Z (path)</option>
+              <option value="desc">Z → A (path)</option>
+            </select>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <button id="selectAllBtn" style="flex:1;">Select all</button>
+            <button id="deselectAllBtn" style="flex:1;">Deselect all</button>
+          </div>
+
+          <div class="tokenRow" style="margin-top:10px;">
+            <div id="noteCount" class="meta">0 notes selected</div>
+            <div id="tokenEstimate" class="meta">Estimated tokens: 0</div>
+          </div>
+
+          <div id="tokenWarning" class="warning hidden" style="margin-top:10px;">
+            Context may be too large — please deselect some notes.
+          </div>
+
+          <div style="margin-top:12px;" class="list" id="mdList" aria-label="Notes list"></div>
+
+          <div style="margin-top:12px;">
+            <button id="startBtn" class="primary" style="width:100%;" disabled>Start Session</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div id="apiKeyEditWrap">
+            <div class="meta" style="margin-bottom:6px;">Claude API key (stored in sessionStorage only)</div>
+            <div class="keyRow">
+              <div style="flex:1;">
+                <input id="apiKeyInput" type="password" placeholder="Paste your Anthropic API key" autocomplete="off" />
+              </div>
+              <div class="keyActions">
+                <button id="revealKeyBtn" class="linkBtn" type="button">Show</button>
+              </div>
+            </div>
+          </div>
+          <div id="apiKeySavedWrap" class="hidden">
+            <div class="meta" style="margin-bottom:6px;">Claude API key</div>
+            <div class="apiKeySuccessRow">
+              <span class="checkIcon" aria-hidden="true">✓</span>
+              <span class="successLabel">API key saved for this session</span>
+              <button id="editKeyBtn" class="linkBtn" type="button">Edit</button>
+            </div>
+          </div>
+          <div id="apiKeyError" class="meta" style="margin-top:10px; color:#991b1b; font-weight:700;"></div>
+        </div>
+
+        <div id="chatWrap" class="chatWrap" aria-live="polite">
+          <div id="emptyState" class="emptyState">
+            Select notes on the left, then click <span style="color:var(--primary);">Start Session</span>.
+          </div>
+        </div>
+
+        <div id="composerWrap" class="hidden">
+          <div class="composer">
+            <div class="composerLeft">
+              <textarea id="userInput" placeholder="Type your answer... (or type 'end session')" ></textarea>
+              <div class="kbd" style="margin-top:6px;">Tip: Shift+Enter to send</div>
+            </div>
+            <div class="composerActions">
+              <button id="sendBtn" class="primary" style="min-width:150px;">Send</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <button id="endBtn" class="endBtn" style="width:100%;">End Session</button>
+          </div>
+        </div>
+
+        <div id="newSessionWrap" class="hidden">
+          <button id="newSessionBtn" style="width:100%;" class="primary">New Session</button>
+          <div class="meta" style="margin-top:10px;">You can pick different notes and start again.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // App state
+      const state = {
+        vaultNotes: [], // { name, path, content }
+        selectedPaths: new Set(),
+        filteredQuery: "",
+        sortOrder: "asc", // "asc" | "desc" — by path
+        sessionStarted: false,
+        sessionEnded: false,
+        streaming: false,
+        conversation: [], // { role: "user"|"assistant", content: string }
+        assistantTextLast: "",
+        activeAssistantBubble: null,
+      };
+
+      const els = {
+        unsupportedBanner: document.getElementById("unsupportedBanner"),
+        insecureContextBanner: document.getElementById("insecureContextBanner"),
+        openVaultBtn: document.getElementById("openVaultBtn"),
+        vaultStatus: document.getElementById("vaultStatus"),
+        vaultLoadPanel: document.getElementById("vaultLoadPanel"),
+        vaultLoadLabel: document.getElementById("vaultLoadLabel"),
+        vaultProgressTrack: document.getElementById("vaultProgressTrack"),
+        vaultProgressFill: document.getElementById("vaultProgressFill"),
+        noMdFound: document.getElementById("noMdFound"),
+        noteSearch: document.getElementById("noteSearch"),
+        noteSortOrder: document.getElementById("noteSortOrder"),
+        selectAllBtn: document.getElementById("selectAllBtn"),
+        deselectAllBtn: document.getElementById("deselectAllBtn"),
+        mdList: document.getElementById("mdList"),
+        noteCount: document.getElementById("noteCount"),
+        tokenEstimate: document.getElementById("tokenEstimate"),
+        tokenWarning: document.getElementById("tokenWarning"),
+        startBtn: document.getElementById("startBtn"),
+
+        apiKeyEditWrap: document.getElementById("apiKeyEditWrap"),
+        apiKeySavedWrap: document.getElementById("apiKeySavedWrap"),
+        apiKeyInput: document.getElementById("apiKeyInput"),
+        revealKeyBtn: document.getElementById("revealKeyBtn"),
+        editKeyBtn: document.getElementById("editKeyBtn"),
+        apiKeyError: document.getElementById("apiKeyError"),
+
+        chatWrap: document.getElementById("chatWrap"),
+        emptyState: document.getElementById("emptyState"),
+        composerWrap: document.getElementById("composerWrap"),
+        userInput: document.getElementById("userInput"),
+        sendBtn: document.getElementById("sendBtn"),
+        endBtn: document.getElementById("endBtn"),
+        newSessionWrap: document.getElementById("newSessionWrap"),
+        newSessionBtn: document.getElementById("newSessionBtn"),
+      };
+
+      const API = {
+        endpoint: "https://api.anthropic.com/v1/messages",
+        version: "2023-06-01",
+        model: "claude-sonnet-4-20250514",
+        maxTokens: 1024,
+      };
+
+      function setChatEmptyStateVisible(visible){
+        els.emptyState.classList.toggle("hidden", !visible);
+      }
+
+      function clearChat(){
+        // Keep emptyState element; clear everything else.
+        [...els.chatWrap.querySelectorAll(".msgRow, .spinner")].forEach((n)=>n.remove());
+      }
+
+      function createMessageBubble({ role, text, isError=false, connection=false }){
+        const row = document.createElement("div");
+        row.className = "msgRow " + (role === "assistant" ? "assistant" : "user");
+
+        const msg = document.createElement("div");
+        msg.className = "msg " + (role === "user" ? "user" : "");
+        if (isError) msg.classList.add("errorCard");
+        if (connection) msg.classList.add("connection");
+
+        if (connection && role === "assistant"){
+          const badge = document.createElement("div");
+          badge.className = "badge";
+          badge.textContent = "Connection";
+          msg.appendChild(badge);
+        }
+
+        msg.textContent = text || "";
+        row.appendChild(msg);
+        return { row, msg };
+      }
+
+      function setStreamingUI(streaming){
+        state.streaming = streaming;
+        els.sendBtn.disabled = streaming;
+        els.endBtn.disabled = streaming;
+        els.userInput.disabled = streaming;
+      }
+
+      function getSelectedNotes(){
+        return state.vaultNotes.filter(n => state.selectedPaths.has(n.path));
+      }
+
+      function setSelectionCountUI(){
+        const selectedCount = state.selectedPaths.size;
+        els.noteCount.textContent = `${selectedCount} notes selected`;
+
+        let totalChars = 0;
+        for (const n of state.vaultNotes){
+          if (state.selectedPaths.has(n.path)) totalChars += n.content.length;
+        }
+        const estimatedTokens = Math.floor(totalChars / 4);
+        els.tokenEstimate.textContent = `Estimated tokens: ${estimatedTokens}`;
+
+        const tooLarge = estimatedTokens > 150000;
+        els.tokenWarning.classList.toggle("hidden", !tooLarge);
+      }
+
+      function matchesQuery(note, q){
+        if (!q) return true;
+        const s = (note.name + " " + note.path).toLowerCase();
+        return s.includes(q.toLowerCase());
+      }
+
+      function sortNotesByPath(a, b){
+        const cmp = a.path.localeCompare(b.path, undefined, { sensitivity: "base" });
+        return state.sortOrder === "asc" ? cmp : -cmp;
+      }
+
+      function getVisibleNotesSorted(){
+        const q = state.filteredQuery.trim();
+        return state.vaultNotes.filter(n => matchesQuery(n, q)).sort(sortNotesByPath);
+      }
+
+      function renderNotesList(){
+        els.mdList.innerHTML = "";
+        const visibleNotes = getVisibleNotesSorted();
+
+        if (state.vaultNotes.length === 0){
+          els.noMdFound.textContent = "No notes found yet. Open a vault to begin.";
+        } else if (visibleNotes.length === 0){
+          els.noMdFound.textContent = "No notes match your search.";
+        } else {
+          els.noMdFound.textContent = "";
+        }
+
+        const frag = document.createDocumentFragment();
+        for (const note of visibleNotes){
+          const item = document.createElement("label");
+          item.className = "noteItem";
+
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = state.selectedPaths.has(note.path);
+          cb.addEventListener("change", () => {
+            if (cb.checked) state.selectedPaths.add(note.path);
+            else state.selectedPaths.delete(note.path);
+            setSelectionCountUI();
+            els.startBtn.disabled = state.selectedPaths.size === 0 || state.sessionStarted;
+            renderNotesList();
+          });
+
+          const titleWrap = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "noteTitle";
+          title.textContent = note.name;
+          const p = document.createElement("div");
+          p.className = "notePath";
+          p.textContent = note.path;
+
+          titleWrap.appendChild(title);
+          titleWrap.appendChild(p);
+
+          item.appendChild(cb);
+          item.appendChild(titleWrap);
+          frag.appendChild(item);
+        }
+        els.mdList.appendChild(frag);
+      }
+
+      function selectAllVisible(){
+        const visibleNotes = getVisibleNotesSorted();
+        for (const n of visibleNotes) state.selectedPaths.add(n.path);
+        setSelectionCountUI();
+        els.startBtn.disabled = state.selectedPaths.size === 0 || state.sessionStarted;
+        renderNotesList();
+      }
+
+      function deselectAllVisible(){
+        const visibleNotes = getVisibleNotesSorted();
+        for (const n of visibleNotes) state.selectedPaths.delete(n.path);
+        setSelectionCountUI();
+        els.startBtn.disabled = state.selectedPaths.size === 0 || state.sessionStarted;
+        renderNotesList();
+      }
+
+      function setApiKeyUIForSessionStarted(){
+        showApiKeySavedUI();
+        els.apiKeyInput.disabled = true;
+        els.apiKeyInput.type = "password";
+      }
+
+      function setApiKeyUIForEditing(){
+        showApiKeyEditUI();
+        els.apiKeyInput.disabled = false;
+        els.revealKeyBtn.classList.remove("hidden");
+        els.apiKeyInput.value = getStoredApiKey();
+        els.apiKeyInput.type = "password";
+        els.revealKeyBtn.textContent = "Show";
+        els.apiKeyInput.focus();
+      }
+
+      function getStoredApiKey(){
+        return sessionStorage.getItem("claudeApiKey") || "";
+      }
+
+      function setStoredApiKey(key){
+        sessionStorage.setItem("claudeApiKey", key);
+      }
+
+      function showInlineApiKeyError(msg){
+        els.apiKeyError.textContent = msg;
+      }
+
+      function clearInlineApiKeyError(){
+        els.apiKeyError.textContent = "";
+      }
+
+      function setVaultLoadingVisible(visible){
+        els.vaultLoadPanel.classList.toggle("hidden", !visible);
+      }
+
+      function setVaultProgress(loaded, total){
+        const pct = total > 0 ? Math.round((loaded / total) * 100) : 0;
+        els.vaultProgressFill.style.width = pct + "%";
+        els.vaultProgressTrack.setAttribute("aria-valuenow", String(pct));
+      }
+
+      function showApiKeySavedUI(){
+        els.apiKeyEditWrap.classList.add("hidden");
+        els.apiKeySavedWrap.classList.remove("hidden");
+        els.apiKeyInput.value = "";
+      }
+
+      function showApiKeyEditUI(){
+        els.apiKeyEditWrap.classList.remove("hidden");
+        els.apiKeySavedWrap.classList.add("hidden");
+      }
+
+      function getApiKey(){
+        const fromInput = els.apiKeyInput.value.trim();
+        if (fromInput) return fromInput;
+        return getStoredApiKey().trim();
+      }
+
+      function clearStoredApiKey(){
+        sessionStorage.removeItem("claudeApiKey");
+      }
+
+      function tryCommitApiKeyFromInput(){
+        const k = els.apiKeyInput.value.trim();
+        if (k){
+          setStoredApiKey(k);
+          showApiKeySavedUI();
+        } else if (getStoredApiKey()){
+          clearStoredApiKey();
+          showApiKeyEditUI();
+        }
+        clearInlineApiKeyError();
+      }
+
+      function refreshOpenVaultButton(){
+        els.openVaultBtn.disabled = typeof window.showDirectoryPicker !== "function";
+      }
+
+      function detectUnsupported(){
+        const supported = typeof window.showDirectoryPicker === "function";
+        const secure = !!window.isSecureContext;
+
+        els.unsupportedBanner.style.display = supported ? "none" : "block";
+        els.openVaultBtn.disabled = !supported;
+
+        // File System Access API also requires a secure context.
+        els.insecureContextBanner.style.display =
+          supported && !secure ? "block" : "none";
+      }
+
+      async function enumerateMarkdownFileHandles(rootHandle){
+        const items = [];
+        async function walk(dirHandle, prefix){
+          for await (const [name, handle] of dirHandle.entries()){
+            const nextPath = prefix ? `${prefix}/${name}` : name;
+            if (handle.kind === "file"){
+              if (name.toLowerCase().endsWith(".md")){
+                items.push({ name, path: nextPath, fileHandle: handle });
+              }
+            } else if (handle.kind === "directory"){
+              await walk(handle, nextPath);
+            }
+          }
+        }
+        await walk(rootHandle, "");
+        return items;
+      }
+
+      async function loadNotesFromHandles(items, onProgress){
+        const notes = [];
+        const total = items.length;
+        for (let i = 0; i < items.length; i++){
+          const { name, path, fileHandle } = items[i];
+          const file = await fileHandle.getFile();
+          const content = await file.text();
+          notes.push({ name, path, content });
+          if (onProgress) onProgress(i + 1, total);
+        }
+        return notes;
+      }
+
+      function buildSystemPrompt(selectedNotes){
+        const NOTES_DELIMITER = "---";
+        const notesBlock = selectedNotes.map((n) => {
+          return [
+            NOTES_DELIMITER,
+            `Name: ${n.name}`,
+            `Path: ${n.path}`,
+            NOTES_DELIMITER,
+            n.content,
+          ].join("\n");
+        }).join("\n");
+
+        const SYSTEM_PROMPT = `You are a personal study agent. Your job is to help the user recall and deeply understand the material in their notes through Socratic questioning.
+
+Here are the notes you will use for this session:
+
+---
+{NOTES}
+---
+
+Rules:
+- Ask one question at a time. Never ask multiple questions in a single message.
+- Questions should require the user to retrieve and explain, not just recognize. Avoid yes/no questions.
+- After each answer, do three things: (1) affirm what was correct, (2) clearly correct anything wrong or incomplete, (3) ask the next question.
+- When correcting, explain *why* the user's answer was wrong using the content of their notes.
+- Every 4-5 questions, proactively surface a connection between two notes that the user may not have explicitly linked. Frame it as an observation, not a question: "I notice your note on X connects to your note on Y because..."
+- Keep your tone encouraging but honest. Don't accept vague or incomplete answers - push for specificity.
+- When the user ends the session (they type "end session" or click the end button), output a brief summary: topics covered, any persistent misconceptions to revisit, and the strongest connection you found across notes.
+- If the user asks a question instead of answering, answer it briefly and return to the quiz.`;
+
+        return SYSTEM_PROMPT.replace("{NOTES}", notesBlock);
+      }
+
+      function shouldHighlightConnection(assistantText){
+        return (
+          assistantText.includes("I notice your note on") ||
+          assistantText.includes("connects to your note on")
+        );
+      }
+
+      function applyConnectionStyling(msgEl, assistantText){
+        if (!shouldHighlightConnection(assistantText)) return;
+        msgEl.classList.add("connection");
+        if (!msgEl.querySelector(".badge")){
+          const badge = document.createElement("div");
+          badge.className = "badge";
+          badge.textContent = "Connection";
+          msgEl.insertBefore(badge, msgEl.firstChild);
+        }
+      }
+
+      function parseSSEBlock(block){
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+        const lines = trimmed.split("\n");
+        let eventType = "";
+        const dataLines = [];
+        for (const line of lines){
+          if (line.startsWith("event:")){
+            eventType = line.slice(6).trim();
+          } else if (line.startsWith("data:")){
+            dataLines.push(line.slice(5).trim());
+          }
+        }
+        if (!eventType) eventType = "message";
+
+        if (dataLines.length === 0) return { eventType, data: null };
+        const dataStr = dataLines.join("\n");
+        try {
+          return { eventType, data: JSON.parse(dataStr) };
+        } catch {
+          return { eventType, data: dataStr };
+        }
+      }
+
+      async function streamClaudeText({ apiKey, systemPrompt, requestMessages, onTextDelta, signal }){
+        const res = await fetch(API.endpoint, {
+          method: "POST",
+          headers: {
+            "x-api-key": apiKey,
+            "anthropic-version": API.version,
+            "anthropic-dangerous-direct-browser-access": "true",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: API.model,
+            max_tokens: API.maxTokens,
+            stream: true,
+            system: systemPrompt,
+            messages: requestMessages,
+          }),
+          signal,
+        });
+
+        if (!res.ok){
+          let t = "";
+          try { t = await res.text(); } catch {}
+          throw new Error(`HTTP ${res.status}${t ? ": " + t : ""}`);
+        }
+        if (!res.body) throw new Error("No response body");
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        let fullText = "";
+
+        while (true){
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          buf = buf.replace(/\r/g, "");
+
+          while (true){
+            const idx = buf.indexOf("\n\n");
+            if (idx === -1) break;
+            const block = buf.slice(0, idx);
+            buf = buf.slice(idx + 2);
+            const parsed = parseSSEBlock(block);
+            if (!parsed) continue;
+
+            const { eventType, data } = parsed;
+
+            if (
+              eventType === "content_block_delta" &&
+              data &&
+              data.delta &&
+              data.delta.type === "text_delta" &&
+              typeof data.delta.text === "string"
+            ){
+              const token = data.delta.text;
+              fullText += token;
+              onTextDelta(token);
+            } else if (eventType === "error" || (data && data.type === "error")){
+              const errMsg =
+                data && data.error && data.error.message
+                  ? data.error.message
+                  : "Claude returned an error";
+              throw new Error(errMsg);
+            }
+          }
+        }
+
+        return fullText;
+      }
+
+      function friendlyErrorFromClaudeError(err){
+        const s = String(err && err.message ? err.message : err || "");
+        const lower = s.toLowerCase();
+        if (
+          lower.includes("overloaded") ||
+          lower.includes("529") ||
+          lower.includes("429") ||
+          lower.includes("rate")
+        ){
+          return "Claude is a bit busy - wait a moment and try again";
+        }
+        return s || "Claude returned an error";
+      }
+
+      function scrollChatToBottom(){
+        els.chatWrap.scrollTop = els.chatWrap.scrollHeight;
+      }
+
+      function setNoteSelectionEnabled(enabled){
+        els.noteSearch.disabled = !enabled;
+        els.noteSortOrder.disabled = !enabled;
+        els.selectAllBtn.disabled = !enabled;
+        els.deselectAllBtn.disabled = !enabled;
+        [...els.mdList.querySelectorAll('input[type="checkbox"]')].forEach(cb => {
+          cb.disabled = !enabled;
+        });
+      }
+
+      // Minimal MVP wiring for UI; core logic is implemented in later to-dos.
+      function initUI(){
+        detectUnsupported();
+
+        if (getStoredApiKey().trim()){
+          showApiKeySavedUI();
+        } else {
+          showApiKeyEditUI();
+        }
+
+        els.revealKeyBtn.addEventListener("click", () => {
+          if (els.apiKeyInput.type === "password"){
+            els.apiKeyInput.type = "text";
+            els.revealKeyBtn.textContent = "Hide";
+          } else {
+            els.apiKeyInput.type = "password";
+            els.revealKeyBtn.textContent = "Show";
+          }
+        });
+
+        els.editKeyBtn.addEventListener("click", () => {
+          setApiKeyUIForEditing();
+        });
+
+        els.apiKeyInput.addEventListener("blur", () => {
+          if (!els.apiKeyEditWrap.classList.contains("hidden")){
+            tryCommitApiKeyFromInput();
+          }
+        });
+
+        els.apiKeyInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter"){
+            e.preventDefault();
+            tryCommitApiKeyFromInput();
+          }
+        });
+
+        els.openVaultBtn.addEventListener("click", () => {
+          (async () => {
+            try {
+              els.vaultStatus.textContent = "Opening vault…";
+              clearInlineApiKeyError();
+
+              // Reset session-like state but keep API key value.
+              state.vaultNotes = [];
+              state.selectedPaths = new Set();
+              state.sessionStarted = false;
+              state.sessionEnded = false;
+              state.streaming = false;
+              state.conversation = [];
+              state.assistantTextLast = "";
+              state.activeAssistantBubble = null;
+
+              clearChat();
+              setChatEmptyStateVisible(true);
+              els.composerWrap.classList.add("hidden");
+              els.newSessionWrap.classList.add("hidden");
+
+              els.startBtn.disabled = true;
+              setNoteSelectionEnabled(true);
+              renderNotesList();
+              setSelectionCountUI();
+
+              const rootHandle = await window.showDirectoryPicker();
+              els.openVaultBtn.disabled = true;
+              setVaultLoadingVisible(true);
+              els.vaultLoadLabel.textContent = "Scanning vault for markdown…";
+              setVaultProgress(0, 0);
+
+              const items = await enumerateMarkdownFileHandles(rootHandle);
+              items.sort((a, b) => a.path.localeCompare(b.path, undefined, { sensitivity: "base" }));
+
+              if (items.length === 0){
+                els.vaultLoadLabel.textContent = "No markdown files found.";
+                setVaultProgress(0, 0);
+                setVaultLoadingVisible(false);
+                refreshOpenVaultButton();
+
+                state.vaultNotes = [];
+                renderNotesList();
+                setSelectionCountUI();
+                els.vaultStatus.textContent = "No .md files found in that folder.";
+                els.startBtn.disabled = true;
+                return;
+              }
+
+              els.vaultLoadLabel.textContent = `Loading ${items.length} note${items.length === 1 ? "" : "s"}…`;
+              setVaultProgress(0, items.length);
+
+              const notes = await loadNotesFromHandles(items, (loaded, total) => {
+                setVaultProgress(loaded, total);
+                els.vaultLoadLabel.textContent = `Loading notes ${loaded} / ${total}`;
+              });
+
+              state.vaultNotes = notes;
+              state.selectedPaths = new Set();
+
+              setVaultLoadingVisible(false);
+              refreshOpenVaultButton();
+
+              renderNotesList();
+              setSelectionCountUI();
+
+              els.vaultStatus.textContent = `Loaded ${notes.length} notes. Select which to study.`;
+              els.startBtn.disabled = state.selectedPaths.size === 0 || state.sessionStarted;
+            } catch (err){
+              setVaultLoadingVisible(false);
+              refreshOpenVaultButton();
+              const msg = (err && err.message) ? err.message : String(err);
+              els.vaultStatus.textContent = "Vault open cancelled or failed: " + msg;
+            }
+          })();
+        });
+
+        els.noteSearch.addEventListener("input", () => {
+          state.filteredQuery = els.noteSearch.value || "";
+          renderNotesList();
+        });
+
+        els.noteSortOrder.value = state.sortOrder;
+        els.noteSortOrder.addEventListener("change", () => {
+          state.sortOrder = els.noteSortOrder.value === "desc" ? "desc" : "asc";
+          renderNotesList();
+        });
+
+        els.selectAllBtn.addEventListener("click", () => selectAllVisible());
+        els.deselectAllBtn.addEventListener("click", () => deselectAllVisible());
+
+        els.startBtn.addEventListener("click", () => {
+          (async () => {
+            let spinner = null;
+            let assistantRow = null;
+
+            try {
+              if (state.streaming) return;
+              const selectedNotes = getSelectedNotes();
+              if (selectedNotes.length === 0) return;
+
+              const apiKey = getApiKey();
+              if (!apiKey){
+                showInlineApiKeyError("Missing API key. Paste it into the field above.");
+                showApiKeyEditUI();
+                els.apiKeyInput.focus();
+                return;
+              }
+              clearInlineApiKeyError();
+              setStoredApiKey(apiKey);
+              setApiKeyUIForSessionStarted();
+
+              state.sessionStarted = true;
+              state.sessionEnded = false;
+              state.conversation = [];
+
+              clearChat();
+              setChatEmptyStateVisible(false);
+              els.composerWrap.classList.remove("hidden");
+              els.newSessionWrap.classList.add("hidden");
+
+              setNoteSelectionEnabled(false);
+              els.startBtn.disabled = true;
+
+              const systemPrompt = buildSystemPrompt(selectedNotes);
+              const baseMessages = [{ role: "user", content: "Start session" }];
+
+              // Assistant streaming bubble
+              setStreamingUI(true);
+              spinner = document.createElement("div");
+              spinner.className = "spinner";
+              spinner.innerHTML = '<div class="spinnerDot"></div><div>Thinking...</div>';
+              els.chatWrap.appendChild(spinner);
+
+              const { row: assistantRowLocal, msg: assistantMsg } = createMessageBubble({
+                role: "assistant",
+                text: "",
+                connection: false,
+              });
+              assistantRow = assistantRowLocal;
+              els.chatWrap.appendChild(assistantRowLocal);
+              scrollChatToBottom();
+
+              let gotFirstToken = false;
+              const assistantText = await streamClaudeText({
+                apiKey,
+                systemPrompt,
+                requestMessages: baseMessages,
+                onTextDelta: (token) => {
+                  if (!gotFirstToken){
+                    gotFirstToken = true;
+                    spinner.remove();
+                  }
+                  assistantMsg.textContent += token;
+                  scrollChatToBottom();
+                }
+              });
+
+              if (spinner.isConnected) spinner.remove();
+              applyConnectionStyling(assistantMsg, assistantText);
+
+              state.conversation = baseMessages.concat([
+                { role: "assistant", content: assistantText },
+              ]);
+
+              setStreamingUI(false);
+              els.userInput.disabled = false;
+              els.userInput.value = "";
+              els.userInput.focus();
+
+              els.vaultStatus.textContent = `Session started. Answer the question below.`;
+              els.sendBtn.disabled = false;
+              els.endBtn.disabled = false;
+            } catch (err){
+              setStreamingUI(false);
+              if (spinner && spinner.isConnected) spinner.remove();
+              if (assistantRow && assistantRow.isConnected) assistantRow.remove();
+              const msg = friendlyErrorFromClaudeError(err);
+              const { row } = createMessageBubble({
+                role: "assistant",
+                text: msg,
+                isError: true,
+              });
+              els.chatWrap.appendChild(row);
+              scrollChatToBottom();
+              els.vaultStatus.textContent = "Claude request failed. You can try again.";
+              // Let the user attempt again without starting a new session.
+              state.sessionStarted = false;
+              setNoteSelectionEnabled(true);
+              els.composerWrap.classList.add("hidden");
+              els.newSessionWrap.classList.add("hidden");
+              els.startBtn.disabled = state.selectedPaths.size === 0;
+            }
+          })();
+        });
+
+        els.userInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && e.shiftKey){
+            e.preventDefault();
+            els.sendBtn.click();
+          }
+        });
+
+        els.sendBtn.addEventListener("click", () => {
+          (async () => {
+            if (state.streaming || state.sessionEnded) return;
+            const text = els.userInput.value.trim();
+            if (!text) return;
+
+            const normalized = text.toLowerCase() === "end session" ? "end session" : text;
+            const isEndTurn = normalized === "end session";
+
+            const apiKey = getApiKey();
+            if (!apiKey){
+              showInlineApiKeyError("Missing API key. Edit and paste it again.");
+              setApiKeyUIForEditing();
+              return;
+            }
+            clearInlineApiKeyError();
+            setStoredApiKey(apiKey);
+
+            els.userInput.value = "";
+
+            // Render user bubble immediately.
+            const { row: userRow } = createMessageBubble({
+              role: "user",
+              text: normalized,
+            });
+            els.chatWrap.appendChild(userRow);
+            scrollChatToBottom();
+
+            const selectedNotes = getSelectedNotes();
+            const systemPrompt = buildSystemPrompt(selectedNotes);
+            const requestMessages = state.conversation.concat([
+              { role: "user", content: normalized },
+            ]);
+
+            setStreamingUI(true);
+            const spinner = document.createElement("div");
+            spinner.className = "spinner";
+            spinner.innerHTML = '<div class="spinnerDot"></div><div>Thinking...</div>';
+            els.chatWrap.appendChild(spinner);
+
+            const { row: assistantRow, msg: assistantMsg } = createMessageBubble({
+              role: "assistant",
+              text: "",
+              connection: false,
+            });
+            els.chatWrap.appendChild(assistantRow);
+            scrollChatToBottom();
+
+            let gotFirstToken = false;
+            try {
+              const assistantText = await streamClaudeText({
+                apiKey,
+                systemPrompt,
+                requestMessages,
+                onTextDelta: (token) => {
+                  if (!gotFirstToken){
+                    gotFirstToken = true;
+                    spinner.remove();
+                  }
+                  assistantMsg.textContent += token;
+                  scrollChatToBottom();
+                }
+              });
+
+              if (spinner.isConnected) spinner.remove();
+              applyConnectionStyling(assistantMsg, assistantText);
+
+              state.conversation = requestMessages.concat([
+                { role: "assistant", content: assistantText },
+              ]);
+
+              setStreamingUI(false);
+
+              if (isEndTurn){
+                state.sessionEnded = true;
+                state.sessionStarted = false;
+                setNoteSelectionEnabled(true);
+                els.composerWrap.classList.add("hidden");
+                els.newSessionWrap.classList.remove("hidden");
+                els.startBtn.disabled = state.selectedPaths.size === 0;
+                els.vaultStatus.textContent = "Session ended.";
+              } else {
+                els.userInput.disabled = false;
+                els.userInput.focus();
+              }
+            } catch (err){
+              if (spinner.isConnected) spinner.remove();
+              if (assistantRow.isConnected) assistantRow.remove();
+              setStreamingUI(false);
+              const msg = friendlyErrorFromClaudeError(err);
+              const { row } = createMessageBubble({
+                role: "assistant",
+                text: msg,
+                isError: true,
+              });
+              els.chatWrap.appendChild(row);
+              scrollChatToBottom();
+            }
+          })();
+        });
+
+        els.endBtn.addEventListener("click", () => {
+          (async () => {
+            if (state.streaming || state.sessionEnded) return;
+            // Mirror end-session behavior required by the system prompt.
+            els.userInput.value = "end session";
+            els.sendBtn.click();
+          })();
+        });
+
+        els.newSessionBtn.addEventListener("click", () => {
+          state.conversation = [];
+          state.sessionStarted = false;
+          state.sessionEnded = false;
+          els.userInput.value = "";
+
+          clearChat();
+          setChatEmptyStateVisible(true);
+          els.composerWrap.classList.add("hidden");
+          els.newSessionWrap.classList.add("hidden");
+
+          setNoteSelectionEnabled(true);
+          els.startBtn.disabled = state.selectedPaths.size === 0;
+          els.vaultStatus.textContent = "Pick notes on the left, then start a new session.";
+        });
+
+        els.startBtn.disabled = true;
+        setSelectionCountUI();
+        renderNotesList();
+      }
+
+      initUI();
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,18 @@
+# Secrets / local configuration
+.env
+.env.*
+
+# Node (not required for this repo, but commonly added later)
+node_modules/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# Build / coverage (future-proofing)
+dist/
+build/
+coverage/
+
