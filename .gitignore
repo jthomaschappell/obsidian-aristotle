@@ -1,6 +1,8 @@
 # Secrets / local configuration
 .env
 .env.*
+!.env.example
+@README.local.md
 
 # Node (not required for this repo, but commonly added later)
 node_modules/

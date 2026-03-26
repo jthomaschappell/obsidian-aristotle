@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Study Agent (Claude)</title>
+    <script>
+      window.__ANTHROPIC_API_KEY_FROM_ENV__ = "";
+    </script>
     <style>
       :root{
         /* Surfaces */
@@ -567,7 +570,7 @@
       <div class="right">
         <div class="card">
           <div id="apiKeyEditWrap">
-            <div class="meta" style="margin-bottom:6px;">Claude API key (stored in sessionStorage only)</div>
+            <div class="meta" style="margin-bottom:6px;">Claude API key (sessionStorage for this tab). Optional: set ANTHROPIC_API_KEY in .env when using the local server — see .env.example.</div>
             <div class="keyRow">
               <div style="flex:1;">
                 <input id="apiKeyInput" type="password" placeholder="Paste your Anthropic API key" autocomplete="off" />
@@ -862,6 +865,16 @@
         els.apiKeySavedWrap.classList.add("hidden");
       }
 
+      function getEnvPrefillKey(){
+        if (
+          typeof window.__ANTHROPIC_API_KEY_FROM_ENV__ === "string" &&
+          window.__ANTHROPIC_API_KEY_FROM_ENV__.trim() !== ""
+        ){
+          return window.__ANTHROPIC_API_KEY_FROM_ENV__.trim();
+        }
+        return "";
+      }
+
       function getApiKey(){
         const fromInput = els.apiKeyInput.value.trim();
         if (fromInput) return fromInput;
@@ -1108,7 +1121,11 @@ Rules:
       function initUI(){
         detectUnsupported();
 
-        if (getStoredApiKey().trim()){
+        const envKey = getEnvPrefillKey();
+        if (envKey){
+          setStoredApiKey(envKey);
+          showApiKeySavedUI();
+        } else if (getStoredApiKey().trim()){
           showApiKeySavedUI();
         } else {
           showApiKeyEditUI();
