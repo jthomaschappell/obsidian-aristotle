@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Study Agent (Claude)</title>
     <script>
-      window.__ANTHROPIC_API_KEY_FROM_ENV__ = "";
+      window.__OPENROUTER_API_KEY_FROM_ENV__ = "";
     </script>
     <style>
       :root{
@@ -570,10 +570,10 @@
       <div class="right">
         <div class="card">
           <div id="apiKeyEditWrap">
-            <div class="meta" style="margin-bottom:6px;">Claude API key (sessionStorage for this tab). Optional: set ANTHROPIC_API_KEY in .env when using the local server — see .env.example.</div>
+            <div class="meta" style="margin-bottom:6px;">OpenRouter API key (sessionStorage for this tab). Optional: set OPENROUTER_API_KEY in .env when using the local server — see .env.example.</div>
             <div class="keyRow">
               <div style="flex:1;">
-                <input id="apiKeyInput" type="password" placeholder="Paste your Anthropic API key" autocomplete="off" />
+                <input id="apiKeyInput" type="password" placeholder="Paste your OpenRouter API key" autocomplete="off" />
               </div>
               <div class="keyActions">
                 <button id="revealKeyBtn" class="linkBtn" type="button">Show</button>
@@ -589,6 +589,25 @@
             </div>
           </div>
           <div id="apiKeyError" class="meta" style="margin-top:10px; color:#991b1b; font-weight:700;"></div>
+
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(73,68,85,.15);">
+            <div id="promptEditWrap">
+              <div class="meta" style="margin-bottom:6px;">System prompt — use <code style="font-family:monospace; font-size:0.85em;">{NOTES}</code> where selected notes are inserted.</div>
+              <textarea id="promptInput" style="min-height:160px; font-size:0.85rem;"></textarea>
+              <div style="margin-top:8px; display:flex; gap:8px;">
+                <button id="savePromptBtn" class="primary" style="flex:1;">Save Prompt</button>
+                <button id="resetPromptBtn" style="flex:1;">Reset to Default</button>
+              </div>
+            </div>
+            <div id="promptSavedWrap" class="hidden">
+              <div class="meta" style="margin-bottom:6px;">System prompt</div>
+              <div class="apiKeySuccessRow">
+                <span class="checkIcon" aria-hidden="true">✓</span>
+                <span class="successLabel" id="promptSavedLabel">Default prompt active</span>
+                <button id="editPromptBtn" class="linkBtn" type="button">Edit</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="chatWrap" class="chatWrap" aria-live="polite">
@@ -634,6 +653,24 @@
         activeAssistantBubble: null,
       };
 
+      const DEFAULT_SYSTEM_PROMPT_TEMPLATE = `You are a personal study agent. Your job is to help the user recall and deeply understand the material in their notes through Socratic questioning.
+
+Here are the notes you will use for this session:
+
+---
+{NOTES}
+---
+
+Rules:
+- Ask one question at a time. Never ask multiple questions in a single message.
+- Questions should require the user to retrieve and explain, not just recognize. Avoid yes/no questions.
+- After each answer, do three things: (1) affirm what was correct, (2) clearly correct anything wrong or incomplete, (3) ask the next question.
+- When correcting, explain *why* the user's answer was wrong using the content of their notes.
+- Every 4-5 questions, proactively surface a connection between two notes that the user may not have explicitly linked. Frame it as an observation, not a question: "I notice your note on X connects to your note on Y because..."
+- Keep your tone encouraging but honest. Don't accept vague or incomplete answers - push for specificity.
+- When the user ends the session (they type "end session" or click the end button), output a brief summary: topics covered, any persistent misconceptions to revisit, and the strongest connection you found across notes.
+- If the user asks a question instead of answering, answer it briefly and return to the quiz.`;
+
       const els = {
         unsupportedBanner: document.getElementById("unsupportedBanner"),
         insecureContextBanner: document.getElementById("insecureContextBanner"),
@@ -661,6 +698,14 @@
         editKeyBtn: document.getElementById("editKeyBtn"),
         apiKeyError: document.getElementById("apiKeyError"),
 
+        promptEditWrap: document.getElementById("promptEditWrap"),
+        promptSavedWrap: document.getElementById("promptSavedWrap"),
+        promptInput: document.getElementById("promptInput"),
+        savePromptBtn: document.getElementById("savePromptBtn"),
+        resetPromptBtn: document.getElementById("resetPromptBtn"),
+        editPromptBtn: document.getElementById("editPromptBtn"),
+        promptSavedLabel: document.getElementById("promptSavedLabel"),
+
         chatWrap: document.getElementById("chatWrap"),
         emptyState: document.getElementById("emptyState"),
         composerWrap: document.getElementById("composerWrap"),
@@ -672,9 +717,8 @@
       };
 
       const API = {
-        endpoint: "https://api.anthropic.com/v1/messages",
-        version: "2023-06-01",
-        model: "claude-sonnet-4-20250514",
+        endpoint: "https://openrouter.ai/api/v1/chat/completions",
+        model: "anthropic/claude-3.5-sonnet",
         maxTokens: 1024,
       };
 
@@ -867,10 +911,10 @@
 
       function getEnvPrefillKey(){
         if (
-          typeof window.__ANTHROPIC_API_KEY_FROM_ENV__ === "string" &&
-          window.__ANTHROPIC_API_KEY_FROM_ENV__.trim() !== ""
+          typeof window.__OPENROUTER_API_KEY_FROM_ENV__ === "string" &&
+          window.__OPENROUTER_API_KEY_FROM_ENV__.trim() !== ""
         ){
-          return window.__ANTHROPIC_API_KEY_FROM_ENV__.trim();
+          return window.__OPENROUTER_API_KEY_FROM_ENV__.trim();
         }
         return "";
       }
@@ -883,6 +927,46 @@
 
       function clearStoredApiKey(){
         sessionStorage.removeItem("claudeApiKey");
+      }
+
+      function getStoredPromptTemplate(){
+        return sessionStorage.getItem("studyPromptTemplate") || "";
+      }
+
+      function setStoredPromptTemplate(t){
+        sessionStorage.setItem("studyPromptTemplate", t);
+      }
+
+      function clearStoredPromptTemplate(){
+        sessionStorage.removeItem("studyPromptTemplate");
+      }
+
+      function getActivePromptTemplate(){
+        return getStoredPromptTemplate() || DEFAULT_SYSTEM_PROMPT_TEMPLATE;
+      }
+
+      function showPromptEditUI(){
+        els.promptEditWrap.classList.remove("hidden");
+        els.promptSavedWrap.classList.add("hidden");
+        els.promptInput.value = getActivePromptTemplate();
+        els.promptInput.focus();
+      }
+
+      function showPromptSavedUI(){
+        els.promptEditWrap.classList.add("hidden");
+        els.promptSavedWrap.classList.remove("hidden");
+        const isCustom = !!getStoredPromptTemplate();
+        els.promptSavedLabel.textContent = isCustom ? "Custom prompt active" : "Default prompt active";
+      }
+
+      function commitPrompt(){
+        const val = els.promptInput.value.trim();
+        if (!val || val === DEFAULT_SYSTEM_PROMPT_TEMPLATE){
+          clearStoredPromptTemplate();
+        } else {
+          setStoredPromptTemplate(val);
+        }
+        showPromptSavedUI();
       }
 
       function tryCommitApiKeyFromInput(){
@@ -956,25 +1040,7 @@
           ].join("\n");
         }).join("\n");
 
-        const SYSTEM_PROMPT = `You are a personal study agent. Your job is to help the user recall and deeply understand the material in their notes through Socratic questioning.
-
-Here are the notes you will use for this session:
-
----
-{NOTES}
----
-
-Rules:
-- Ask one question at a time. Never ask multiple questions in a single message.
-- Questions should require the user to retrieve and explain, not just recognize. Avoid yes/no questions.
-- After each answer, do three things: (1) affirm what was correct, (2) clearly correct anything wrong or incomplete, (3) ask the next question.
-- When correcting, explain *why* the user's answer was wrong using the content of their notes.
-- Every 4-5 questions, proactively surface a connection between two notes that the user may not have explicitly linked. Frame it as an observation, not a question: "I notice your note on X connects to your note on Y because..."
-- Keep your tone encouraging but honest. Don't accept vague or incomplete answers - push for specificity.
-- When the user ends the session (they type "end session" or click the end button), output a brief summary: topics covered, any persistent misconceptions to revisit, and the strongest connection you found across notes.
-- If the user asks a question instead of answering, answer it briefly and return to the quiz.`;
-
-        return SYSTEM_PROMPT.replace("{NOTES}", notesBlock);
+        return getActivePromptTemplate().replace("{NOTES}", notesBlock);
       }
 
       function shouldHighlightConnection(assistantText){
@@ -1023,17 +1089,17 @@ Rules:
         const res = await fetch(API.endpoint, {
           method: "POST",
           headers: {
-            "x-api-key": apiKey,
-            "anthropic-version": API.version,
-            "anthropic-dangerous-direct-browser-access": "true",
+            "Authorization": `Bearer ${apiKey}`,
             "content-type": "application/json",
           },
           body: JSON.stringify({
             model: API.model,
             max_tokens: API.maxTokens,
             stream: true,
-            system: systemPrompt,
-            messages: requestMessages,
+            messages: [
+              { role: "system", content: systemPrompt },
+              ...requestMessages,
+            ],
           }),
           signal,
         });
@@ -1066,21 +1132,20 @@ Rules:
 
             const { eventType, data } = parsed;
 
-            if (
-              eventType === "content_block_delta" &&
+            if (data === "[DONE]") {
+              // stream finished
+            } else if (
               data &&
-              data.delta &&
-              data.delta.type === "text_delta" &&
-              typeof data.delta.text === "string"
+              data.choices &&
+              data.choices[0] &&
+              data.choices[0].delta &&
+              typeof data.choices[0].delta.content === "string"
             ){
-              const token = data.delta.text;
+              const token = data.choices[0].delta.content;
               fullText += token;
               onTextDelta(token);
-            } else if (eventType === "error" || (data && data.type === "error")){
-              const errMsg =
-                data && data.error && data.error.message
-                  ? data.error.message
-                  : "Claude returned an error";
+            } else if (data && data.error){
+              const errMsg = data.error.message || "OpenRouter returned an error";
               throw new Error(errMsg);
             }
           }
@@ -1098,9 +1163,9 @@ Rules:
           lower.includes("429") ||
           lower.includes("rate")
         ){
-          return "Claude is a bit busy - wait a moment and try again";
+          return "The model is a bit busy - wait a moment and try again";
         }
-        return s || "Claude returned an error";
+        return s || "OpenRouter returned an error";
       }
 
       function scrollChatToBottom(){
@@ -1143,6 +1208,30 @@ Rules:
 
         els.editKeyBtn.addEventListener("click", () => {
           setApiKeyUIForEditing();
+        });
+
+        // Prompt editing
+        showPromptSavedUI();
+
+        els.editPromptBtn.addEventListener("click", () => {
+          showPromptEditUI();
+        });
+
+        els.savePromptBtn.addEventListener("click", () => {
+          commitPrompt();
+        });
+
+        els.resetPromptBtn.addEventListener("click", () => {
+          clearStoredPromptTemplate();
+          els.promptInput.value = DEFAULT_SYSTEM_PROMPT_TEMPLATE;
+          showPromptSavedUI();
+        });
+
+        els.promptInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && e.shiftKey){
+            e.preventDefault();
+            commitPrompt();
+          }
         });
 
         els.apiKeyInput.addEventListener("blur", () => {

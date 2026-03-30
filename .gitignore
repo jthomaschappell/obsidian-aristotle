@@ -2,7 +2,12 @@
 .env
 .env.*
 !.env.example
-@README.local.md
+README.local.md
+
+# AI
+.cursor/
+.claude/
+.ai/
 
 # Node (not required for this repo, but commonly added later)
 node_modules/

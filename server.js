@@ -49,13 +49,13 @@ function loadEnvFile() {
 loadEnvFile();
 
 /**
- * Injects `ANTHROPIC_API_KEY` from the environment into the served HTML.
+ * Injects `OPENROUTER_API_KEY` from the environment into the served HTML.
  */
-function injectAnthropicKeyIntoHtml(html) {
-  const v = process.env.ANTHROPIC_API_KEY || "";
+function injectApiKeyIntoHtml(html) {
+  const v = process.env.OPENROUTER_API_KEY || "";
   return html.replace(
-    /window\.__ANTHROPIC_API_KEY_FROM_ENV__\s*=\s*"";/,
-    `window.__ANTHROPIC_API_KEY_FROM_ENV__ = ${JSON.stringify(v)};`
+    /window\.__OPENROUTER_API_KEY_FROM_ENV__\s*=\s*"";/,
+    `window.__OPENROUTER_API_KEY_FROM_ENV__ = ${JSON.stringify(v)};`
   );
 }
 
@@ -85,7 +85,7 @@ function sendFile(res, statusCode, filePath) {
 
 function sendStudyAgentHtml(res) {
   let html = fs.readFileSync(HTML_PATH, "utf8");
-  html = injectAnthropicKeyIntoHtml(html);
+  html = injectApiKeyIntoHtml(html);
   res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
   res.end(html);
 }
@@ -125,9 +125,9 @@ server.listen(PORT, HOST, () => {
   console.log(`Study Agent server running at http://${HOST}:${PORT}`);
   // eslint-disable-next-line no-console
   console.log(`Open http://${HOST}:${PORT} in Chrome/Edge (secure-context required).`);
-  if (process.env.ANTHROPIC_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY) {
     // eslint-disable-next-line no-console
-    console.log("ANTHROPIC_API_KEY loaded (from .env or environment); will prefill the Study Agent UI.");
+    console.log("OPENROUTER_API_KEY loaded (from .env or environment); will prefill the Study Agent UI.");
   }
 });
 
