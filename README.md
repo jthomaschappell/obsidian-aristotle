@@ -7,20 +7,43 @@ The File System Access API used by the "Open Vault" button works best in a secur
 ## Quick start
 
 1. Make sure you have Node.js installed (`node --version`).
-2. From the repo directory:
+2. Copy the example env file and add your key:
+   - `cp .env.example .env`
+   - Edit `.env` and set `OPENROUTER_API_KEY=sk-or-...`
+3. From the repo directory:
    - `node server.js`
-3. Open in Chrome/Edge:
+4. Open in Chrome/Edge:
    - `http://127.0.0.1:3000`
+
+The server injects the key from `.env` into the served page automatically — no need to paste it each session.
 
 ## Custom host/port
 
 - `HOST=127.0.0.1 PORT=3000 node server.js`
 
+## API key UX (OpenRouter)
+- After you paste and save your key, the input is replaced by a “saved for this session” indicator.
+- Clicking **Edit** opens a blank masked (`password`) input: it never pre-fills or displays your existing key.
+- Use **Save** to replace the key, or **Cancel** to return without changing it.
+- If running via the local server with a `.env` key set, the key is pre-loaded and the indicator shows immediately on page load.
+
+## Vault loading
+- Opening a vault shows a scan spinner and a determinate progress bar while all `.md` files are read from the chosen folder.
+- Once loaded, the notes list is scrollable and constrained — it does not extend the full page.
+
+## Notes list controls
+- **Sort order**: toggle between A→Z and Z→A by file path.
+- **Filter**: type to narrow the visible notes list.
+- **Select/Deselect All** operates only on the currently filtered set.
+
 ## Manual QA
 
 1. Load `http://127.0.0.1:3000` and confirm the page renders.
-2. Click **Open Vault** and confirm the directory picker opens.
-3. Select a folder with a few `.md` notes and confirm note loading works.
-4. Start a session (requires your Anthropic API key) and confirm Claude streaming output appears.
-5. Verify `GET /healthz` returns `{ "ok": true }`.
+2. If `.env` is configured, confirm the API key indicator shows "saved for this session" without any input.
+3. Click **Open Vault** and confirm the directory picker opens.
+4. Select a folder with `.md` notes and confirm the scan spinner and progress bar appear, then notes render.
+5. Use the sort dropdown and filter field; confirm list order and that **Select/Deselect All** respects the filter.
+6. Confirm the notes list scrolls when there are many notes.
+7. Start a session and confirm Claude streaming output appears.
+8. Verify `GET /healthz` returns `{ "ok": true }`.
 

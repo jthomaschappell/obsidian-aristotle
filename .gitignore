@@ -8,6 +8,7 @@ README.local.md
 .cursor/
 .claude/
 .ai/
+.jdvance/
 
 # Node (not required for this repo, but commonly added later)
 node_modules/
@@ -22,4 +23,7 @@ node_modules/
 dist/
 build/
 coverage/
+
+# Personal session summaries (local only — not for version control)
+session-summaries/
 

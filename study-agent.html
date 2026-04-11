@@ -38,6 +38,93 @@
         --glassBg: rgba(53,53,52,.6);
       }
 
+      [data-theme="light"] {
+        --surface: #f2f2f0;
+        --surfaceContainerLowest: #fafaf8;
+        --surfaceContainerLow: #e8e8e5;
+        --surfaceContainer: #ededea;
+        --surfaceContainerHigh: #deded9;
+        --surfaceContainerHighest: #d2d2cc;
+        --surfaceVariant: #d2d2cc;
+        --outlineVariant: #c4c4bc;
+        --onSurface: #1a1a17;
+        --onSurfaceVariant: rgba(26,26,23,.62);
+        --primary: #7c3aed;
+        --primaryContainer: #5b21b6;
+        --secondaryContainer: #4c1d95;
+        --glassBg: rgba(242,242,240,.8);
+        --error: #dc2626;
+        --success: #059669;
+      }
+
+      [data-theme="light"] .card,
+      [data-theme="light"] .list,
+      [data-theme="light"] .tabBar,
+      [data-theme="light"] button,
+      [data-theme="light"] input[type="text"],
+      [data-theme="light"] input[type="password"],
+      [data-theme="light"] textarea,
+      [data-theme="light"] .sortRow select {
+        outline-color: rgba(0,0,0,.1);
+      }
+
+      [data-theme="light"] .noteItem:hover {
+        background: rgba(0,0,0,.05);
+      }
+
+      [data-theme="light"] .msg {
+        background: rgba(255,255,255,.9);
+        outline: 1px solid rgba(0,0,0,.08);
+      }
+
+      [data-theme="light"] .msg.user {
+        background: rgba(124,58,237,.08);
+      }
+
+      [data-theme="light"] .msg.connection {
+        background: rgba(124,58,237,.07);
+        outline: 1px solid rgba(124,58,237,.2);
+      }
+
+      [data-theme="light"] .badge {
+        background: rgba(91,33,182,.15);
+        color: rgba(26,26,23,.95);
+      }
+
+      [data-theme="light"] .vaultProgressTrack {
+        background: rgba(0,0,0,.1);
+      }
+
+      [data-theme="light"] .mdContent hr {
+        border-top-color: rgba(0,0,0,.12);
+      }
+
+      [data-theme="light"] .apiKeySuccessRow .successLabel {
+        color: rgba(26,26,23,.9);
+      }
+
+      .themeToggle {
+        margin-left: auto;
+        background: transparent;
+        outline: none;
+        border-radius: 8px;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--onSurfaceVariant);
+        flex-shrink: 0;
+      }
+
+      .themeToggle:hover {
+        background: rgba(208,188,255,.12);
+        color: var(--onSurface);
+      }
+
+      [data-theme="light"] .themeToggle:hover {
+        background: rgba(124,58,237,.1);
+      }
+
       *{ box-sizing:border-box; }
 
       body{
@@ -64,7 +151,7 @@
         display:flex;
         gap:14px;
         padding:14px;
-        height: calc(100vh - 28px);
+        height: calc(100vh - 52px - 14px);
         background: var(--surface);
       }
 
@@ -469,13 +556,57 @@
       .keyRow{
         display:flex;
         gap:10px;
-        align-items:center;
+        align-items:stretch;
       }
 
-      .keyRow .keyActions{
+      .keyRow > input{
+        flex:1;
+        min-width:0;
+        width:100%;
+        box-sizing:border-box;
+      }
+
+      .keyEditActions{
         display:flex;
-        gap:10px;
+        gap:8px;
+        margin-top:8px;
+        flex-wrap:wrap;
+      }
+
+      .keyEditActions button.primary{
+        flex:1;
+        min-width:120px;
+      }
+
+      .appHeader{
+        display:flex;
         align-items:center;
+        gap:12px;
+        padding:14px 14px 0;
+        height:52px;
+      }
+
+      .appLogo{
+        width:28px;
+        height:28px;
+        flex-shrink:0;
+      }
+
+      .appTitle{
+        font-weight:900;
+        font-size:1.1rem;
+        letter-spacing:-0.02em;
+        color: var(--onSurface);
+        line-height:1.2;
+      }
+
+      .appSubtitle{
+        font-size:0.78rem;
+        color: var(--onSurfaceVariant);
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight:600;
+        letter-spacing:0.01em;
+        line-height:1.2;
       }
 
       .linkBtn{
@@ -492,8 +623,79 @@
         outline-offset: 2px;
       }
 
+      .tabBar{
+        display:flex;
+        gap:4px;
+        background: var(--surfaceContainerLowest);
+        border-radius:10px;
+        padding:4px;
+        outline: 1px solid rgba(73,68,85,.15);
+        flex-shrink:0;
+      }
+
+      .tabBtn{
+        flex:1;
+        background: transparent;
+        outline: none;
+        border-radius:8px;
+        font-weight:700;
+        padding:7px 12px;
+        color: var(--onSurfaceVariant);
+      }
+
+      .tabBtn.active{
+        background: var(--surfaceContainerHighest);
+        color: var(--onSurface);
+      }
+
+      .tabContent{
+        flex:1;
+        min-height:0;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+      }
+
+      .historyItem{
+        padding:10px 12px;
+        border-radius:12px;
+        background: var(--surfaceContainerLow);
+        cursor:pointer;
+        margin-bottom:8px;
+        outline: 1px solid rgba(73,68,85,.15);
+      }
+
+      .historyItem:hover{
+        background: var(--surfaceContainerHigh);
+      }
+
+      .historyItemDate{
+        font-weight:800;
+        font-size:0.9rem;
+        color: var(--onSurface);
+      }
+
+      .historyItemMeta{
+        color: var(--onSurfaceVariant);
+        font-size:0.8rem;
+        margin-top:2px;
+      }
+
+      .historyEmpty{
+        color: var(--onSurfaceVariant);
+        font-weight:800;
+        padding:14px 6px;
+      }
+
+      .mdContent{ line-height:1.7; }
+      .mdContent h1{ font-size:1.1rem; font-weight:900; margin:0 0 10px; letter-spacing:-0.01em; }
+      .mdContent h2{ font-size:0.95rem; font-weight:800; margin:14px 0 6px; }
+      .mdContent hr{ border:none; border-top:1px solid rgba(73,68,85,.25); margin:14px 0; }
+      .mdContent li{ margin:2px 0; }
+      .mdContent p{ margin:6px 0; }
+
       @media (max-width: 980px){
-        .layout{ flex-direction:column; height:auto; min-height:calc(100vh - 28px); }
+        .layout{ flex-direction:column; height:auto; min-height:calc(100vh - 52px - 14px); }
         .left,.right{ width:100%; min-width:0; }
         .left > .card{
           flex:1 1 auto;
@@ -514,6 +716,28 @@
     <div id="insecureContextBanner" class="banner">
       This app requires a secure context (https or http://localhost) for the File System Access API.
     </div>
+
+    <header class="appHeader">
+      <img src="https://obsidian.md/images/obsidian-logo-gradient.svg" alt="Obsidian" class="appLogo" />
+      <div>
+        <div class="appTitle">Aristotle</div>
+        <div class="appSubtitle">Socratic study agent for your Obsidian vault</div>
+      </div>
+      <button id="themeToggleBtn" class="themeToggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+        <!-- Sun — shown in dark mode (click to go light) -->
+        <svg id="themeSunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Moon — shown in light mode (click to go dark) -->
+        <svg id="themeMoonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="hidden">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </header>
 
     <div class="layout">
       <div class="left">
@@ -572,12 +796,11 @@
           <div id="apiKeyEditWrap">
             <div class="meta" style="margin-bottom:6px;">OpenRouter API key (sessionStorage for this tab). Optional: set OPENROUTER_API_KEY in .env when using the local server — see .env.example.</div>
             <div class="keyRow">
-              <div style="flex:1;">
-                <input id="apiKeyInput" type="password" placeholder="Paste your OpenRouter API key" autocomplete="off" />
-              </div>
-              <div class="keyActions">
-                <button id="revealKeyBtn" class="linkBtn" type="button">Show</button>
-              </div>
+              <input id="apiKeyInput" type="password" placeholder="Paste your OpenRouter API key" autocomplete="off" />
+            </div>
+            <div class="keyEditActions">
+              <button id="saveApiKeyBtn" class="primary" type="button">Save</button>
+              <button id="cancelApiKeyBtn" type="button">Cancel</button>
             </div>
           </div>
           <div id="apiKeySavedWrap" class="hidden">
@@ -610,30 +833,48 @@
           </div>
         </div>
 
-        <div id="chatWrap" class="chatWrap" aria-live="polite">
-          <div id="emptyState" class="emptyState">
-            Select notes on the left, then click <span style="color:var(--primary);">Start Session</span>.
+        <div class="tabBar" role="tablist">
+          <button id="sessionTabBtn" class="tabBtn active" role="tab">Session</button>
+          <button id="historyTabBtn" class="tabBtn" role="tab">History</button>
+        </div>
+
+        <div id="sessionTabContent" class="tabContent">
+          <div id="chatWrap" class="chatWrap" aria-live="polite">
+            <div id="emptyState" class="emptyState">
+              Select notes on the left, then click <span id="emptyStateStartLink" style="color:var(--primary); cursor:pointer; text-decoration:underline dotted;">Start Session</span>.
+            </div>
+          </div>
+
+          <div id="composerWrap" class="hidden">
+            <div class="composer">
+              <div class="composerLeft">
+                <textarea id="userInput" placeholder="Type your answer... (or type 'end session')" ></textarea>
+                <div class="kbd" style="margin-top:6px;">Tip: Enter to send · Shift+Enter for newline</div>
+              </div>
+              <div class="composerActions">
+                <button id="sendBtn" class="primary" style="min-width:150px;">Send</button>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <button id="endBtn" class="endBtn" style="width:100%;">End Session</button>
+            </div>
+          </div>
+
+          <div id="newSessionWrap" class="hidden">
+            <button id="newSessionBtn" style="width:100%;" class="primary">New Session</button>
+            <div class="meta" style="margin-top:10px;">You can pick different notes and start again.</div>
           </div>
         </div>
 
-        <div id="composerWrap" class="hidden">
-          <div class="composer">
-            <div class="composerLeft">
-              <textarea id="userInput" placeholder="Type your answer... (or type 'end session')" ></textarea>
-              <div class="kbd" style="margin-top:6px;">Tip: Shift+Enter to send</div>
-            </div>
-            <div class="composerActions">
-              <button id="sendBtn" class="primary" style="min-width:150px;">Send</button>
-            </div>
+        <div id="historyTabContent" class="tabContent hidden">
+          <div id="historyListView" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+            <div class="meta" style="margin-bottom:8px; font-weight:700;">Past Sessions</div>
+            <div id="historyListInner" class="list" style="flex:1;"></div>
           </div>
-          <div style="margin-top:10px;">
-            <button id="endBtn" class="endBtn" style="width:100%;">End Session</button>
+          <div id="historyDetailView" class="hidden" style="flex:1; min-height:0; display:flex; flex-direction:column; gap:10px;">
+            <button id="historyBackBtn" style="align-self:flex-start;">← Back to History</button>
+            <div id="historyDetailContent" class="list mdContent" style="flex:1;"></div>
           </div>
-        </div>
-
-        <div id="newSessionWrap" class="hidden">
-          <button id="newSessionBtn" style="width:100%;" class="primary">New Session</button>
-          <div class="meta" style="margin-top:10px;">You can pick different notes and start again.</div>
         </div>
       </div>
     </div>
@@ -694,7 +935,8 @@ Rules:
         apiKeyEditWrap: document.getElementById("apiKeyEditWrap"),
         apiKeySavedWrap: document.getElementById("apiKeySavedWrap"),
         apiKeyInput: document.getElementById("apiKeyInput"),
-        revealKeyBtn: document.getElementById("revealKeyBtn"),
+        saveApiKeyBtn: document.getElementById("saveApiKeyBtn"),
+        cancelApiKeyBtn: document.getElementById("cancelApiKeyBtn"),
         editKeyBtn: document.getElementById("editKeyBtn"),
         apiKeyError: document.getElementById("apiKeyError"),
 
@@ -714,6 +956,20 @@ Rules:
         endBtn: document.getElementById("endBtn"),
         newSessionWrap: document.getElementById("newSessionWrap"),
         newSessionBtn: document.getElementById("newSessionBtn"),
+
+        sessionTabBtn: document.getElementById("sessionTabBtn"),
+        historyTabBtn: document.getElementById("historyTabBtn"),
+        sessionTabContent: document.getElementById("sessionTabContent"),
+        historyTabContent: document.getElementById("historyTabContent"),
+        historyListView: document.getElementById("historyListView"),
+        historyListInner: document.getElementById("historyListInner"),
+        historyDetailView: document.getElementById("historyDetailView"),
+        historyDetailContent: document.getElementById("historyDetailContent"),
+        historyBackBtn: document.getElementById("historyBackBtn"),
+
+        themeToggleBtn: document.getElementById("themeToggleBtn"),
+        themeSunIcon: document.getElementById("themeSunIcon"),
+        themeMoonIcon: document.getElementById("themeMoonIcon"),
       };
 
       const API = {
@@ -860,15 +1116,18 @@ Rules:
         showApiKeySavedUI();
         els.apiKeyInput.disabled = true;
         els.apiKeyInput.type = "password";
+        els.saveApiKeyBtn.disabled = true;
+        els.cancelApiKeyBtn.disabled = true;
       }
 
       function setApiKeyUIForEditing(){
         showApiKeyEditUI();
         els.apiKeyInput.disabled = false;
-        els.revealKeyBtn.classList.remove("hidden");
-        els.apiKeyInput.value = getStoredApiKey();
+        els.saveApiKeyBtn.disabled = false;
+        els.cancelApiKeyBtn.disabled = false;
+        els.apiKeyInput.value = "";
         els.apiKeyInput.type = "password";
-        els.revealKeyBtn.textContent = "Show";
+        clearInlineApiKeyError();
         els.apiKeyInput.focus();
       }
 
@@ -902,11 +1161,16 @@ Rules:
         els.apiKeyEditWrap.classList.add("hidden");
         els.apiKeySavedWrap.classList.remove("hidden");
         els.apiKeyInput.value = "";
+        els.saveApiKeyBtn.disabled = false;
+        els.cancelApiKeyBtn.disabled = false;
       }
 
       function showApiKeyEditUI(){
         els.apiKeyEditWrap.classList.remove("hidden");
         els.apiKeySavedWrap.classList.add("hidden");
+        els.apiKeyInput.disabled = false;
+        els.saveApiKeyBtn.disabled = false;
+        els.cancelApiKeyBtn.disabled = false;
       }
 
       function getEnvPrefillKey(){
@@ -969,16 +1233,29 @@ Rules:
         showPromptSavedUI();
       }
 
-      function tryCommitApiKeyFromInput(){
+      function commitApiKeyFromInput(){
         const k = els.apiKeyInput.value.trim();
         if (k){
           setStoredApiKey(k);
           showApiKeySavedUI();
-        } else if (getStoredApiKey()){
-          clearStoredApiKey();
-          showApiKeyEditUI();
+          clearInlineApiKeyError();
+          return true;
         }
+        if (getStoredApiKey().trim()){
+          showInlineApiKeyError("Paste a new key to replace the saved one, or click Cancel to keep it.");
+        } else {
+          showInlineApiKeyError("Paste your OpenRouter API key.");
+        }
+        return false;
+      }
+
+      function cancelApiKeyEdit(){
         clearInlineApiKeyError();
+        els.apiKeyInput.value = "";
+        els.apiKeyInput.type = "password";
+        if (getStoredApiKey().trim()){
+          showApiKeySavedUI();
+        }
       }
 
       function refreshOpenVaultButton(){
@@ -1168,6 +1445,130 @@ Rules:
         return s || "OpenRouter returned an error";
       }
 
+      // ---- Tab management ----
+
+      function switchTab(tab){
+        const toSession = tab === "session";
+        els.sessionTabBtn.classList.toggle("active", toSession);
+        els.historyTabBtn.classList.toggle("active", !toSession);
+        els.sessionTabContent.classList.toggle("hidden", !toSession);
+        els.historyTabContent.classList.toggle("hidden", toSession);
+        if (!toSession) loadHistoryList();
+      }
+
+      // ---- History helpers ----
+
+      function escapeHtml(s){
+        return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+
+      function renderMarkdown(text){
+        const lines = escapeHtml(text).split("\n");
+        const out = [];
+        for (const line of lines){
+          if (/^# /.test(line))       out.push(`<h1>${line.slice(2)}</h1>`);
+          else if (/^## /.test(line)) out.push(`<h2>${line.slice(3)}</h2>`);
+          else if (/^---$/.test(line)) out.push(`<hr>`);
+          else if (/^- /.test(line))  out.push(`<li>${line.slice(2).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")}</li>`);
+          else                        out.push(`<p>${line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")}</p>`);
+        }
+        return out.join("");
+      }
+
+      function formatFilenameAsDate(filename){
+        // filename: "2026-03-30T14-30-00.md"
+        try {
+          const iso = filename.replace(".md", "").replace(/T(\d{2})-(\d{2})-(\d{2})$/, "T$1:$2:$3");
+          const d = new Date(iso);
+          if (isNaN(d)) return filename;
+          return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+        } catch { return filename; }
+      }
+
+      async function loadHistoryList(){
+        els.historyListInner.innerHTML = "";
+        els.historyDetailView.classList.add("hidden");
+        els.historyListView.classList.remove("hidden");
+
+        let summaries;
+        try {
+          const res = await fetch("/api/summaries");
+          if (!res.ok) throw new Error();
+          ({ summaries } = await res.json());
+        } catch {
+          els.historyListInner.innerHTML = `<div class="historyEmpty">History unavailable — start the local server to enable session saving.</div>`;
+          return;
+        }
+
+        if (summaries.length === 0){
+          els.historyListInner.innerHTML = `<div class="historyEmpty">No sessions saved yet. End a session to create your first summary.</div>`;
+          return;
+        }
+
+        const frag = document.createDocumentFragment();
+        for (const s of summaries){
+          const item = document.createElement("div");
+          item.className = "historyItem";
+
+          const dateEl = document.createElement("div");
+          dateEl.className = "historyItemDate";
+          dateEl.textContent = formatFilenameAsDate(s.filename);
+
+          item.appendChild(dateEl);
+          item.addEventListener("click", () => loadHistoryDetail(s.filename));
+          frag.appendChild(item);
+        }
+        els.historyListInner.appendChild(frag);
+      }
+
+      async function loadHistoryDetail(filename){
+        els.historyListView.classList.add("hidden");
+        els.historyDetailView.classList.remove("hidden");
+        els.historyDetailContent.innerHTML = `<div class="meta" style="padding:10px 0;">Loading…</div>`;
+
+        try {
+          const res = await fetch(`/api/summaries/${encodeURIComponent(filename)}`);
+          if (!res.ok) throw new Error();
+          const text = await res.text();
+          els.historyDetailContent.innerHTML = renderMarkdown(text);
+        } catch {
+          els.historyDetailContent.innerHTML = `<div class="meta" style="color:#991b1b;">Failed to load summary.</div>`;
+        }
+      }
+
+      async function saveSessionSummary({ notes, summaryText }){
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+        const notesList = notes.map((n) => `- ${n.path}`).join("\n");
+
+        const content = [
+          `# Study Session — ${dateStr} at ${timeStr}`,
+          "",
+          `**Notes studied:**`,
+          notesList,
+          "",
+          "---",
+          "",
+          summaryText,
+        ].join("\n");
+
+        const isoStr = now.toISOString().replace(/:/g, "-").replace(/\..+/, "");
+        const filename = `${isoStr}.md`;
+
+        try {
+          await fetch("/api/summaries", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ filename, content }),
+          });
+        } catch {
+          // Server not running — silently skip, don't disrupt the session flow.
+        }
+      }
+
+      // ---- End History helpers ----
+
       function scrollChatToBottom(){
         els.chatWrap.scrollTop = els.chatWrap.scrollHeight;
       }
@@ -1182,8 +1583,25 @@ Rules:
         });
       }
 
+      const THEME_KEY = "study-agent-theme";
+
+      function applyTheme(theme) {
+        const isLight = theme === "light";
+        document.documentElement.setAttribute("data-theme", isLight ? "light" : "dark");
+        els.themeSunIcon.classList.toggle("hidden", isLight);
+        els.themeMoonIcon.classList.toggle("hidden", !isLight);
+      }
+
       // Minimal MVP wiring for UI; core logic is implemented in later to-dos.
       function initUI(){
+        applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+
+        els.themeToggleBtn.addEventListener("click", () => {
+          const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+          localStorage.setItem(THEME_KEY, next);
+          applyTheme(next);
+        });
+
         detectUnsupported();
 
         const envKey = getEnvPrefillKey();
@@ -1196,18 +1614,16 @@ Rules:
           showApiKeyEditUI();
         }
 
-        els.revealKeyBtn.addEventListener("click", () => {
-          if (els.apiKeyInput.type === "password"){
-            els.apiKeyInput.type = "text";
-            els.revealKeyBtn.textContent = "Hide";
-          } else {
-            els.apiKeyInput.type = "password";
-            els.revealKeyBtn.textContent = "Show";
-          }
-        });
-
         els.editKeyBtn.addEventListener("click", () => {
           setApiKeyUIForEditing();
+        });
+
+        els.saveApiKeyBtn.addEventListener("click", () => {
+          commitApiKeyFromInput();
+        });
+
+        els.cancelApiKeyBtn.addEventListener("click", () => {
+          cancelApiKeyEdit();
         });
 
         // Prompt editing
@@ -1234,16 +1650,10 @@ Rules:
           }
         });
 
-        els.apiKeyInput.addEventListener("blur", () => {
-          if (!els.apiKeyEditWrap.classList.contains("hidden")){
-            tryCommitApiKeyFromInput();
-          }
-        });
-
         els.apiKeyInput.addEventListener("keydown", (e) => {
           if (e.key === "Enter"){
             e.preventDefault();
-            tryCommitApiKeyFromInput();
+            commitApiKeyFromInput();
           }
         });
 
@@ -1350,9 +1760,8 @@ Rules:
 
               const apiKey = getApiKey();
               if (!apiKey){
+                setApiKeyUIForEditing();
                 showInlineApiKeyError("Missing API key. Paste it into the field above.");
-                showApiKeyEditUI();
-                els.apiKeyInput.focus();
                 return;
               }
               clearInlineApiKeyError();
@@ -1444,7 +1853,7 @@ Rules:
         });
 
         els.userInput.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && e.shiftKey){
+          if (e.key === "Enter" && !e.shiftKey){
             e.preventDefault();
             els.sendBtn.click();
           }
@@ -1461,8 +1870,8 @@ Rules:
 
             const apiKey = getApiKey();
             if (!apiKey){
-              showInlineApiKeyError("Missing API key. Edit and paste it again.");
               setApiKeyUIForEditing();
+              showInlineApiKeyError("Missing API key. Edit and paste it again.");
               return;
             }
             clearInlineApiKeyError();
@@ -1531,6 +1940,7 @@ Rules:
                 els.newSessionWrap.classList.remove("hidden");
                 els.startBtn.disabled = state.selectedPaths.size === 0;
                 els.vaultStatus.textContent = "Session ended.";
+                saveSessionSummary({ notes: getSelectedNotes(), summaryText: assistantText });
               } else {
                 els.userInput.disabled = false;
                 els.userInput.focus();
@@ -1574,6 +1984,18 @@ Rules:
           setNoteSelectionEnabled(true);
           els.startBtn.disabled = state.selectedPaths.size === 0;
           els.vaultStatus.textContent = "Pick notes on the left, then start a new session.";
+        });
+
+        document.getElementById("emptyStateStartLink").addEventListener("click", () => {
+          els.startBtn.click();
+        });
+
+        // Tab switching
+        els.sessionTabBtn.addEventListener("click", () => switchTab("session"));
+        els.historyTabBtn.addEventListener("click", () => switchTab("history"));
+        els.historyBackBtn.addEventListener("click", () => {
+          els.historyDetailView.classList.add("hidden");
+          els.historyListView.classList.remove("hidden");
         });
 
         els.startBtn.disabled = true;

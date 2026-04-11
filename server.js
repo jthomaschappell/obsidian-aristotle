@@ -16,12 +16,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 const url = require("node:url");
 
-const PORT = Number(process.env.PORT || 3000);
-const HOST = process.env.HOST || "127.0.0.1";
-
 const ROOT_DIR = __dirname;
 const HTML_PATH = path.join(ROOT_DIR, "study-agent.html");
 const ENV_PATH = path.join(ROOT_DIR, ".env");
+const SUMMARIES_DIR = path.join(ROOT_DIR, "session-summaries");
 
 /**
  * Minimal `.env` parser (KEY=value, # comments, optional quotes).
@@ -47,6 +45,9 @@ function loadEnvFile() {
 }
 
 loadEnvFile();
+
+const PORT = Number(process.env.PORT || 3010);
+const HOST = process.env.HOST || "127.0.0.1";
 
 /**
  * Injects `OPENROUTER_API_KEY` from the environment into the served HTML.
@@ -77,6 +78,31 @@ function send(res, statusCode, body, headers = {}) {
   res.end(body);
 }
 
+function sendJson(res, statusCode, obj) {
+  const body = JSON.stringify(obj);
+  res.writeHead(statusCode, { "content-type": "application/json; charset=utf-8" });
+  res.end(body);
+}
+
+/** Read the full request body as a string. */
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    req.on("data", (chunk) => { data += chunk; });
+    req.on("end", () => resolve(data));
+    req.on("error", reject);
+  });
+}
+
+/** Return true if the filename is safe (no path traversal, only allowed chars). */
+function isSafeFilename(name) {
+  return typeof name === "string" &&
+    name.length > 0 &&
+    name.length <= 80 &&
+    /^[\w\-\.]+$/.test(name) &&
+    !name.includes("..");
+}
+
 function sendFile(res, statusCode, filePath) {
   const mime = safeMimeType(filePath);
   res.writeHead(statusCode, { "content-type": mime });
@@ -101,6 +127,67 @@ const server = http.createServer(async (req, res) => {
       res.end(JSON.stringify({ ok: true }));
       return;
     }
+
+    // ------- Summaries API -------
+
+    // GET /api/summaries — list all saved session summaries
+    if (req.method === "GET" && pathname === "/api/summaries") {
+      if (!fs.existsSync(SUMMARIES_DIR)) {
+        sendJson(res, 200, { summaries: [] });
+        return;
+      }
+      const files = fs.readdirSync(SUMMARIES_DIR)
+        .filter((f) => f.endsWith(".md"))
+        .map((filename) => {
+          const stat = fs.statSync(path.join(SUMMARIES_DIR, filename));
+          return { filename, mtime: stat.mtimeMs };
+        })
+        .sort((a, b) => b.mtime - a.mtime);
+      sendJson(res, 200, { summaries: files });
+      return;
+    }
+
+    // POST /api/summaries — save a new session summary
+    if (req.method === "POST" && pathname === "/api/summaries") {
+      const raw = await readBody(req);
+      let body;
+      try { body = JSON.parse(raw); } catch {
+        send(res, 400, "Invalid JSON");
+        return;
+      }
+      const { filename, content } = body;
+      if (!isSafeFilename(filename) || typeof content !== "string") {
+        send(res, 400, "Invalid filename or content");
+        return;
+      }
+      if (!fs.existsSync(SUMMARIES_DIR)) {
+        fs.mkdirSync(SUMMARIES_DIR, { recursive: true });
+      }
+      fs.writeFileSync(path.join(SUMMARIES_DIR, filename), content, "utf8");
+      sendJson(res, 201, { ok: true, filename });
+      return;
+    }
+
+    // GET /api/summaries/:filename — read one summary
+    const summaryMatch = pathname.match(/^\/api\/summaries\/(.+)$/);
+    if (req.method === "GET" && summaryMatch) {
+      const filename = summaryMatch[1];
+      if (!isSafeFilename(filename)) {
+        send(res, 400, "Invalid filename");
+        return;
+      }
+      const filePath = path.join(SUMMARIES_DIR, filename);
+      if (!fs.existsSync(filePath)) {
+        send(res, 404, "Not found");
+        return;
+      }
+      const content = fs.readFileSync(filePath, "utf8");
+      res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+      res.end(content);
+      return;
+    }
+
+    // ------- End Summaries API -------
 
     // Serve main page (with optional ANTHROPIC_API_KEY from .env).
     if (pathname === "/" || pathname === "/study-agent.html") {
