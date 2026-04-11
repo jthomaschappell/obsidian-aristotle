@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Study Agent (Claude)</title>
     <script>
-      window.__OPENROUTER_API_KEY_FROM_ENV__ = "";
+      window.__API_KEY_FROM_ENV__ = "";
     </script>
     <style>
       :root{
@@ -36,6 +36,14 @@
 
         /* Glass */
         --glassBg: rgba(53,53,52,.6);
+
+        /* Shared UI (ghost borders + focus track primary hue) */
+        --ghostOutline: color-mix(in srgb, var(--outlineVariant) 15%, transparent);
+        --ghostOutlineMuted: color-mix(in srgb, var(--outlineVariant) 12%, transparent);
+        --ghostOutlineStrong: color-mix(in srgb, var(--outlineVariant) 25%, transparent);
+        --focusRing: color-mix(in srgb, var(--primary) 35%, transparent);
+        --focusRingInner: color-mix(in srgb, var(--primary) 22%, transparent);
+        --focusGlow: color-mix(in srgb, var(--primary) 10%, transparent);
       }
 
       [data-theme="light"] {
@@ -57,50 +65,9 @@
         --success: #059669;
       }
 
-      [data-theme="light"] .card,
-      [data-theme="light"] .list,
-      [data-theme="light"] .tabBar,
-      [data-theme="light"] button,
-      [data-theme="light"] input[type="text"],
-      [data-theme="light"] input[type="password"],
-      [data-theme="light"] textarea,
-      [data-theme="light"] .sortRow select {
-        outline-color: rgba(0,0,0,.1);
-      }
-
-      [data-theme="light"] .noteItem:hover {
-        background: rgba(0,0,0,.05);
-      }
-
-      [data-theme="light"] .msg {
-        background: rgba(255,255,255,.9);
-        outline: 1px solid rgba(0,0,0,.08);
-      }
-
-      [data-theme="light"] .msg.user {
-        background: rgba(124,58,237,.08);
-      }
-
-      [data-theme="light"] .msg.connection {
-        background: rgba(124,58,237,.07);
-        outline: 1px solid rgba(124,58,237,.2);
-      }
-
       [data-theme="light"] .badge {
-        background: rgba(91,33,182,.15);
-        color: rgba(26,26,23,.95);
-      }
-
-      [data-theme="light"] .vaultProgressTrack {
-        background: rgba(0,0,0,.1);
-      }
-
-      [data-theme="light"] .mdContent hr {
-        border-top-color: rgba(0,0,0,.12);
-      }
-
-      [data-theme="light"] .apiKeySuccessRow .successLabel {
-        color: rgba(26,26,23,.9);
+        background: color-mix(in srgb, var(--secondaryContainer) 16%, transparent);
+        color: color-mix(in srgb, var(--onSurface) 95%, transparent);
       }
 
       .themeToggle {
@@ -117,12 +84,8 @@
       }
 
       .themeToggle:hover {
-        background: rgba(208,188,255,.12);
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
         color: var(--onSurface);
-      }
-
-      [data-theme="light"] .themeToggle:hover {
-        background: rgba(124,58,237,.1);
       }
 
       *{ box-sizing:border-box; }
@@ -143,7 +106,7 @@
         border-radius:14px;
         background: rgba(239,68,68,.12);
         outline: 1px solid rgba(239,68,68,.35);
-        color: rgba(229,226,225,.92);
+        color: var(--onSurface);
         font-weight:700;
       }
 
@@ -184,7 +147,7 @@
         background: var(--surfaceContainerLowest);
         border-radius:14px;
         padding:12px;
-        outline: 1px solid rgba(73,68,85,.15); /* Ghost Border */
+        outline: 1px solid var(--ghostOutline); /* Ghost Border */
       }
 
       button{
@@ -195,7 +158,7 @@
         border-radius: 0.375rem; /* md */
         cursor:pointer;
         font-weight:700;
-        outline: 1px solid rgba(73,68,85,.15); /* Ghost Border */
+        outline: 1px solid var(--ghostOutline); /* Ghost Border */
       }
 
       button:disabled{
@@ -204,7 +167,7 @@
       }
 
       button:focus-visible{
-        outline: 2px solid rgba(208,188,255,.35);
+        outline: 2px solid var(--focusRing);
         outline-offset: 2px;
       }
 
@@ -227,7 +190,7 @@
         border-radius: 0.75rem;
         padding:10px 12px;
         color: var(--onSurface);
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
         font-family: inherit;
       }
 
@@ -237,8 +200,8 @@
       }
 
       input[type="text"]:focus, input[type="password"]:focus, textarea:focus{
-        outline: 2px solid rgba(208,188,255,.22);
-        box-shadow: 0 0 0 4px rgba(208,188,255,.10); /* subtle primary glow */
+        outline: 2px solid var(--focusRingInner);
+        box-shadow: 0 0 0 4px var(--focusGlow);
       }
 
       .meta{
@@ -252,7 +215,7 @@
       .warning{
         outline: 1px solid rgba(180,134,11,.35);
         background: rgba(180,134,11,.10);
-        color: rgba(229,226,225,.92);
+        color: var(--onSurface);
         border-radius:12px;
         padding:10px 12px;
         font-weight:800;
@@ -266,7 +229,7 @@
         overflow:auto;
         flex:1;
         min-height:0;
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
       }
 
       .noteItem{
@@ -279,7 +242,7 @@
       }
 
       .noteItem:hover{
-        background: rgba(53,53,52,.8);
+        background: var(--surfaceContainerHigh);
       }
 
       .noteItem input{
@@ -306,7 +269,7 @@
         padding:12px;
         flex:1;
         overflow:auto;
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
       }
 
       .emptyState{
@@ -353,22 +316,22 @@
       .msg{
         max-width:80%;
         border-radius:14px;
-        background: rgba(42,42,42,.75);
+        background: color-mix(in srgb, var(--surfaceContainer) 78%, transparent);
         padding:10px 12px;
         white-space:pre-wrap;
         line-height:1.6;
-        outline: 1px solid rgba(73,68,85,.12);
+        outline: 1px solid var(--ghostOutlineMuted);
       }
 
       .msg.user{
-        background: rgba(208,188,255,.10);
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
       }
 
       .msg.connection{
-        background: rgba(208,188,255,.10);
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
         position:relative;
         padding-left:14px;
-        outline: 1px solid rgba(208,188,255,.22);
+        outline: 1px solid var(--focusRingInner);
       }
 
       .msg.connection::before{
@@ -386,7 +349,7 @@
         display:inline-block;
         border:0;
         background: rgba(84,23,190,.55); /* secondaryContainer vibe */
-        color: rgba(229,226,225,.95);
+        color: color-mix(in srgb, var(--onSurface) 95%, transparent);
         padding:2px 10px;
         border-radius:999px; /* full */
         font-size:0.8rem;
@@ -399,7 +362,7 @@
         outline: 1px solid rgba(239,68,68,.35);
         background: rgba(239,68,68,.10);
         border-radius:14px;
-        color: rgba(229,226,225,.95);
+        color: var(--onSurface);
         font-weight:800;
       }
 
@@ -421,7 +384,7 @@
 
       .endBtn{
         outline: 1px solid rgba(239,68,68,.55);
-        color: rgba(229,226,225,.95);
+        color: var(--onSurface);
         background: rgba(239,68,68,.04);
       }
 
@@ -454,7 +417,7 @@
       }
 
       .apiKeySuccessRow .successLabel{
-        color: rgba(229,226,225,.92);
+        color: color-mix(in srgb, var(--onSurface) 92%, transparent);
         font-weight:800;
         font-size:0.9rem;
         flex:1;
@@ -466,7 +429,7 @@
         padding:12px;
         border-radius:12px;
         background: var(--surfaceContainer);
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
       }
 
       .vaultLoadPanel .vaultLoadTop{
@@ -479,7 +442,7 @@
         width:22px;
         height:22px;
         border-radius:999px;
-        border:2px solid rgba(208,188,255,.22);
+        border:2px solid var(--focusRingInner);
         border-top-color: var(--primary);
         animation: vaultSpin 0.85s linear infinite;
         flex-shrink:0;
@@ -493,9 +456,9 @@
         margin-top:10px;
         height:8px;
         border-radius:999px;
-        background: rgba(53,53,52,.9);
+        background: color-mix(in srgb, var(--surfaceContainerHighest) 88%, transparent);
         overflow:hidden;
-        outline: 1px solid rgba(73,68,85,.12);
+        outline: 1px solid var(--ghostOutlineMuted);
       }
 
       .vaultProgressFill{
@@ -529,15 +492,15 @@
         border-radius: 0.75rem;
         padding:8px 10px;
         color: var(--onSurface);
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
         font-family: inherit;
         font-weight:700;
         cursor:pointer;
       }
 
       .sortRow select:focus{
-        outline: 2px solid rgba(208,188,255,.22);
-        box-shadow: 0 0 0 4px rgba(208,188,255,.10);
+        outline: 2px solid var(--focusRingInner);
+        box-shadow: 0 0 0 4px var(--focusGlow);
       }
 
       .kbd{
@@ -619,7 +582,7 @@
       }
 
       .linkBtn:focus-visible{
-        outline: 2px solid rgba(208,188,255,.35);
+        outline: 2px solid var(--focusRing);
         outline-offset: 2px;
       }
 
@@ -629,7 +592,7 @@
         background: var(--surfaceContainerLowest);
         border-radius:10px;
         padding:4px;
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
         flex-shrink:0;
       }
 
@@ -662,7 +625,7 @@
         background: var(--surfaceContainerLow);
         cursor:pointer;
         margin-bottom:8px;
-        outline: 1px solid rgba(73,68,85,.15);
+        outline: 1px solid var(--ghostOutline);
       }
 
       .historyItem:hover{
@@ -690,7 +653,13 @@
       .mdContent{ line-height:1.7; }
       .mdContent h1{ font-size:1.1rem; font-weight:900; margin:0 0 10px; letter-spacing:-0.01em; }
       .mdContent h2{ font-size:0.95rem; font-weight:800; margin:14px 0 6px; }
-      .mdContent hr{ border:none; border-top:1px solid rgba(73,68,85,.25); margin:14px 0; }
+      .mdContent hr{ border:none; border-top:1px solid var(--ghostOutlineStrong); margin:14px 0; }
+
+      .sectionSplit{
+        margin-top:12px;
+        padding-top:12px;
+        border-top:1px solid var(--ghostOutline);
+      }
       .mdContent li{ margin:2px 0; }
       .mdContent p{ margin:6px 0; }
 
@@ -794,9 +763,9 @@
       <div class="right">
         <div class="card">
           <div id="apiKeyEditWrap">
-            <div class="meta" style="margin-bottom:6px;">OpenRouter API key (sessionStorage for this tab). Optional: set OPENROUTER_API_KEY in .env when using the local server — see .env.example.</div>
+            <div class="meta" style="margin-bottom:6px;">API key (sessionStorage for this tab). Optional: set API_KEY in .env when using the local server — see README.</div>
             <div class="keyRow">
-              <input id="apiKeyInput" type="password" placeholder="Paste your OpenRouter API key" autocomplete="off" />
+              <input id="apiKeyInput" type="password" placeholder="Paste your API key" autocomplete="off" />
             </div>
             <div class="keyEditActions">
               <button id="saveApiKeyBtn" class="primary" type="button">Save</button>
@@ -813,7 +782,7 @@
           </div>
           <div id="apiKeyError" class="meta" style="margin-top:10px; color:#991b1b; font-weight:700;"></div>
 
-          <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(73,68,85,.15);">
+          <div class="sectionSplit">
             <div id="promptEditWrap">
               <div class="meta" style="margin-bottom:6px;">System prompt — use <code style="font-family:monospace; font-size:0.85em;">{NOTES}</code> where selected notes are inserted.</div>
               <textarea id="promptInput" style="min-height:160px; font-size:0.85rem;"></textarea>
@@ -1175,10 +1144,10 @@ Rules:
 
       function getEnvPrefillKey(){
         if (
-          typeof window.__OPENROUTER_API_KEY_FROM_ENV__ === "string" &&
-          window.__OPENROUTER_API_KEY_FROM_ENV__.trim() !== ""
+          typeof window.__API_KEY_FROM_ENV__ === "string" &&
+          window.__API_KEY_FROM_ENV__.trim() !== ""
         ){
-          return window.__OPENROUTER_API_KEY_FROM_ENV__.trim();
+          return window.__API_KEY_FROM_ENV__.trim();
         }
         return "";
       }
@@ -1244,7 +1213,7 @@ Rules:
         if (getStoredApiKey().trim()){
           showInlineApiKeyError("Paste a new key to replace the saved one, or click Cancel to keep it.");
         } else {
-          showInlineApiKeyError("Paste your OpenRouter API key.");
+          showInlineApiKeyError("Paste your API key.");
         }
         return false;
       }

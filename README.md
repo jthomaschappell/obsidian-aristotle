@@ -7,9 +7,8 @@ The File System Access API used by the "Open Vault" button works best in a secur
 ## Quick start
 
 1. Make sure you have Node.js installed (`node --version`).
-2. Copy the example env file and add your key:
-   - `cp .env.example .env`
-   - Edit `.env` and set `OPENROUTER_API_KEY=sk-or-...`
+2. Create a `.env` file in the project root and add your key:
+   - `API_KEY=sk-or-...` (OpenRouter key for the default chat endpoint)
 3. From the repo directory:
    - `node server.js`
 4. Open in Chrome/Edge:
@@ -21,7 +20,7 @@ The server injects the key from `.env` into the served page automatically — no
 
 - `HOST=127.0.0.1 PORT=3000 node server.js`
 
-## API key UX (OpenRouter)
+## API key UX
 - After you paste and save your key, the input is replaced by a “saved for this session” indicator.
 - Clicking **Edit** opens a blank masked (`password`) input: it never pre-fills or displays your existing key.
 - Use **Save** to replace the key, or **Cancel** to return without changing it.

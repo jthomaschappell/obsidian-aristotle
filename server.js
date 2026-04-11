@@ -5,8 +5,8 @@
  * is treated as secure by browsers, so serving locally enables the "Open Vault"
  * flow to work reliably.
  *
- * Loads optional `.env` from the project root (see `.env.example`) so
- * `ANTHROPIC_API_KEY` can be injected into the page — no extra npm packages.
+ * Loads optional `.env` from the project root so `API_KEY` can be injected
+ * into the page — no extra npm packages.
  *
  * No dependencies; uses Node's built-in modules only.
  */
@@ -50,13 +50,13 @@ const PORT = Number(process.env.PORT || 3010);
 const HOST = process.env.HOST || "127.0.0.1";
 
 /**
- * Injects `OPENROUTER_API_KEY` from the environment into the served HTML.
+ * Injects `API_KEY` from the environment into the served HTML.
  */
 function injectApiKeyIntoHtml(html) {
-  const v = process.env.OPENROUTER_API_KEY || "";
+  const v = process.env.API_KEY || "";
   return html.replace(
-    /window\.__OPENROUTER_API_KEY_FROM_ENV__\s*=\s*"";/,
-    `window.__OPENROUTER_API_KEY_FROM_ENV__ = ${JSON.stringify(v)};`
+    /window\.__API_KEY_FROM_ENV__\s*=\s*"";/,
+    `window.__API_KEY_FROM_ENV__ = ${JSON.stringify(v)};`
   );
 }
 
@@ -189,7 +189,7 @@ const server = http.createServer(async (req, res) => {
 
     // ------- End Summaries API -------
 
-    // Serve main page (with optional ANTHROPIC_API_KEY from .env).
+    // Serve main page (with optional API_KEY from .env).
     if (pathname === "/" || pathname === "/study-agent.html") {
       if (!fs.existsSync(HTML_PATH)) {
         send(res, 500, "Missing study-agent.html");
@@ -212,9 +212,9 @@ server.listen(PORT, HOST, () => {
   console.log(`Study Agent server running at http://${HOST}:${PORT}`);
   // eslint-disable-next-line no-console
   console.log(`Open http://${HOST}:${PORT} in Chrome/Edge (secure-context required).`);
-  if (process.env.OPENROUTER_API_KEY) {
+  if (process.env.API_KEY) {
     // eslint-disable-next-line no-console
-    console.log("OPENROUTER_API_KEY loaded (from .env or environment); will prefill the Study Agent UI.");
+    console.log("API_KEY loaded (from .env or environment); will prefill the Study Agent UI.");
   }
 });
 
