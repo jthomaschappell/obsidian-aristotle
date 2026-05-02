@@ -27,3 +27,5 @@ coverage/
 # Personal session summaries (local only — not for version control)
 session-summaries/
 
+# apple double files
+._*
