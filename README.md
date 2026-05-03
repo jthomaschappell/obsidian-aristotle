@@ -1,8 +1,8 @@
 # Serving the Study Agent
 
-This repo contains a single-page app: `study-agent.html`.
+This repo contains a single-page app rooted at [`study-agent.html`](study-agent.html). Styles live in [`public/css/study-agent.css`](public/css/study-agent.css) and application logic in ES modules under [`public/js/study-agent/`](public/js/study-agent/) (entry: `main.js`). The HTTP server serves those paths under `/public/...`.
 
-The File System Access API used by the "Open Vault" button works best in a secure context; serving from `http://localhost` is considered secure by modern browsers.
+The File System Access API used by the "Open Vault" button works best in a secure context; serving from `http://localhost` is considered secure by modern browsers. **Use `node server.js` and open the app URL** — opening `study-agent.html` via `file://` will not load `/public/` assets.
 
 ## Quick start
 

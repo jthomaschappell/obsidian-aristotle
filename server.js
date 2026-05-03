@@ -1,5 +1,5 @@
 /**
- * Minimal HTTP server to host `study-agent.html`.
+ * Minimal HTTP server to host `study-agent.html` and static files under `public/`.
  *
  * Why: the File System Access API requires a secure context. `http://localhost`
  * is treated as secure by browsers, so serving locally enables the "Open Vault"
@@ -20,6 +20,26 @@ const ROOT_DIR = __dirname;
 const HTML_PATH = path.join(ROOT_DIR, "study-agent.html");
 const ENV_PATH = path.join(ROOT_DIR, ".env");
 const SUMMARIES_DIR = path.join(ROOT_DIR, "session-summaries");
+const PUBLIC_DIR = path.join(ROOT_DIR, "public");
+
+/**
+ * Resolve GET /public/... to an absolute file path under `public/`, or null if unsafe / missing.
+ */
+function resolveSafePublicPath(pathname) {
+  if (!pathname.startsWith("/public/")) return null;
+  const rel = pathname.slice("/public/".length);
+  if (!rel || rel.includes("..")) return null;
+  const segments = rel.split("/").filter(Boolean);
+  if (segments.length === 0) return null;
+  const abs = path.join(PUBLIC_DIR, ...segments);
+  const pubResolved = path.resolve(PUBLIC_DIR);
+  const absResolved = path.resolve(abs);
+  const sep = path.sep;
+  if (absResolved !== pubResolved && !absResolved.startsWith(pubResolved + sep)) {
+    return null;
+  }
+  return absResolved;
+}
 
 /**
  * Minimal `.env` parser (KEY=value, # comments, optional quotes).
@@ -188,6 +208,15 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ------- End Summaries API -------
+
+    // Static assets under /public/ (CSS, ES modules).
+    if (req.method === "GET") {
+      const publicPath = resolveSafePublicPath(pathname);
+      if (publicPath && fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
+        sendFile(res, 200, publicPath);
+        return;
+      }
+    }
 
     // Serve main page (with optional API_KEY from .env).
     if (pathname === "/" || pathname === "/study-agent.html") {
