@@ -12,13 +12,13 @@ The File System Access API used by the "Open Vault" button works best in a secur
 3. From the repo directory:
    - `node server.js`
 4. Open in Chrome/Edge:
-   - `http://127.0.0.1:3000`
+   - `http://127.0.0.1:3010`
 
 The server injects the key from `.env` into the served page automatically — no need to paste it each session.
 
 ## Custom host/port
 
-- `HOST=127.0.0.1 PORT=3000 node server.js`
+- `HOST=127.0.0.1 PORT=3010 node server.js`
 
 ## API key UX
 - After you paste and save your key, the input is replaced by a “saved for this session” indicator.
@@ -37,7 +37,7 @@ The server injects the key from `.env` into the served page automatically — no
 
 ## Manual QA
 
-1. Load `http://127.0.0.1:3000` and confirm the page renders.
+1. Load `http://127.0.0.1:3010` and confirm the page renders.
 2. If `.env` is configured, confirm the API key indicator shows "saved for this session" without any input.
 3. Click **Open Vault** and confirm the directory picker opens.
 4. Select a folder with `.md` notes and confirm the scan spinner and progress bar appear, then notes render.
