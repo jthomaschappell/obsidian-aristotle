@@ -696,8 +696,8 @@
 
       .hearthCard{
         width:100%;
-        max-width:460px;
-        padding:40px 36px;
+        max-width:540px;
+        padding:40px 40px;
         background:var(--surfaceContainerLowest);
         border-radius:20px;
         outline:1px solid var(--ghostOutline);
@@ -802,6 +802,108 @@
         padding:14px;
         font-size:1rem;
         border-radius:12px;
+      }
+
+      /* ---- Hearth Heatmap ---- */
+      .hearthHeatmap{
+        background: var(--surfaceContainerLow);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+      }
+
+      .hearthHeatmapMonths{
+        margin-bottom: 4px;
+        margin-left: 28px;
+      }
+
+      .hearthHeatmapMonth{
+        font-size: 0.6rem;
+        color: var(--onSurfaceVariant);
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
+
+      .hearthHeatmapGridArea{
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+      }
+
+      .hearthHeatmapDayLabels{
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        width: 22px;
+        flex-shrink: 0;
+      }
+
+      .hearthHeatmapDayLabel{
+        height: 12px;
+        font-size: 0.6rem;
+        color: var(--onSurfaceVariant);
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight: 600;
+        line-height: 12px;
+        text-align: right;
+      }
+
+      .hearthHeatmapGrid{
+        display: flex;
+        gap: 3px;
+        flex-shrink: 0;
+      }
+
+      .hearthHeatmapWeek{
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex-shrink: 0;
+      }
+
+      .hearthHeatmapCell{
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        background: var(--surfaceContainerHigh);
+        cursor: default;
+        transition: transform 0.1s ease;
+        flex-shrink: 0;
+      }
+
+      .hearthHeatmapCell:not([data-future]):hover{
+        transform: scale(1.25);
+      }
+
+      .hearthHeatmapCell[data-level="1"]{
+        background: color-mix(in srgb, var(--secondaryContainer) 55%, var(--surfaceContainerHigh));
+      }
+
+      .hearthHeatmapCell[data-level="2"]{
+        background: var(--primary);
+      }
+
+      .hearthHeatmapCell[data-future]{
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .hearthHeatmapLegend{
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+
+      .hearthHeatmapLegendLabel{
+        font-size: 0.6rem;
+        color: var(--onSurfaceVariant);
+        font-family: "Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight: 600;
       }
     </style>
   </head>
@@ -2168,50 +2270,149 @@ Rules:
         return { date, notes };
       }
 
+      function localDateStr(d){
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      }
+
       async function loadHearthSessions(){
         const container = document.getElementById("hearthSessions");
+        container.innerHTML = "";
+
+        let sessionDates = [];
         try {
           const res = await fetch("/api/summaries");
           if (!res.ok) throw new Error();
           const { summaries } = await res.json();
-
-          if (summaries.length === 0){
-            container.innerHTML = `<div class="hearthNoSessions">No sessions yet — start your first one.</div>`;
-            return;
-          }
-
-          const top2 = summaries.slice(0, 2);
-          const contents = await Promise.all(
-            top2.map(s => fetch(`/api/summaries/${encodeURIComponent(s.filename)}`).then(r => r.ok ? r.text() : Promise.reject()))
-          );
-
-          const label = document.createElement("div");
-          label.className = "hearthSessionsLabel";
-          label.textContent = "Recent Sessions";
-          container.appendChild(label);
-
-          top2.forEach((s, i) => {
-            const { date, notes } = parseHearthSession(s.filename, contents[i]);
-            const item = document.createElement("div");
-            item.className = "hearthSessionItem";
-
-            const dateEl = document.createElement("div");
-            dateEl.className = "hearthSessionDate";
-            dateEl.textContent = date;
-
-            const displayed = notes.slice(0, 3);
-            const extra = notes.length - displayed.length;
-            const notesEl = document.createElement("div");
-            notesEl.className = "hearthSessionNotes";
-            notesEl.textContent = displayed.join(", ") + (extra > 0 ? ` +${extra} more` : "");
-
-            item.appendChild(dateEl);
-            if (notes.length > 0) item.appendChild(notesEl);
-            container.appendChild(item);
-          });
+          sessionDates = summaries.map(s => {
+            const iso = s.filename.replace(".md", "").replace(/T(\d{2})-(\d{2})-(\d{2})$/, "T$1:$2:$3");
+            return new Date(iso);
+          }).filter(d => !isNaN(d));
         } catch {
-          container.innerHTML = `<div class="hearthNoSessions">No recent sessions found.</div>`;
+          // server unavailable — show empty heatmap
         }
+
+        const dayCounts = {};
+        for (const d of sessionDates){
+          const key = localDateStr(d);
+          dayCounts[key] = (dayCounts[key] || 0) + 1;
+        }
+
+        const totalSessions = sessionDates.length;
+
+        const WEEKS = 16;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const thisSunday = new Date(todayStart);
+        thisSunday.setDate(todayStart.getDate() - todayStart.getDay());
+
+        const startSunday = new Date(thisSunday);
+        startSunday.setDate(thisSunday.getDate() - (WEEKS - 1) * 7);
+
+        const weeks = [];
+        const cur = new Date(startSunday);
+        for (let w = 0; w < WEEKS; w++){
+          const week = [];
+          for (let d = 0; d < 7; d++){
+            week.push(new Date(cur));
+            cur.setDate(cur.getDate() + 1);
+          }
+          weeks.push(week);
+        }
+
+        const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const monthPositions = [];
+        let lastMonth = -1;
+        weeks.forEach((week, wi) => {
+          const m = week[0].getMonth();
+          if (m !== lastMonth){ lastMonth = m; monthPositions.push({ monthLabel: MONTH_NAMES[m], col: wi + 1 }); }
+        });
+
+        const countLabel = document.createElement("div");
+        countLabel.className = "hearthSessionsLabel";
+        countLabel.textContent = `${totalSessions} session${totalSessions !== 1 ? "s" : ""} in the last 4 months`;
+        container.appendChild(countLabel);
+
+        const heatmapWrap = document.createElement("div");
+        heatmapWrap.className = "hearthHeatmap";
+
+        // Month label row — grid columns align 1:1 with week columns (cell 12px + gap 3px = 15px step)
+        const CELL_STEP = 15;
+        const monthRow = document.createElement("div");
+        monthRow.className = "hearthHeatmapMonths";
+        monthRow.style.display = "grid";
+        monthRow.style.gridTemplateColumns = `repeat(${WEEKS}, ${CELL_STEP}px)`;
+        monthPositions.forEach(({ monthLabel, col }) => {
+          const ml = document.createElement("span");
+          ml.className = "hearthHeatmapMonth";
+          ml.style.gridColumn = String(col);
+          ml.textContent = monthLabel;
+          monthRow.appendChild(ml);
+        });
+
+        const gridArea = document.createElement("div");
+        gridArea.className = "hearthHeatmapGridArea";
+
+        const DAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
+        const dayLabelsEl = document.createElement("div");
+        dayLabelsEl.className = "hearthHeatmapDayLabels";
+        DAY_LABELS.forEach(text => {
+          const dl = document.createElement("div");
+          dl.className = "hearthHeatmapDayLabel";
+          dl.textContent = text;
+          dayLabelsEl.appendChild(dl);
+        });
+
+        const grid = document.createElement("div");
+        grid.className = "hearthHeatmapGrid";
+
+        weeks.forEach(week => {
+          const weekCol = document.createElement("div");
+          weekCol.className = "hearthHeatmapWeek";
+          week.forEach(day => {
+            const key = localDateStr(day);
+            const count = dayCounts[key] || 0;
+            const isFuture = day > todayStart;
+            const cell = document.createElement("div");
+            cell.className = "hearthHeatmapCell";
+            cell.dataset.level = String(Math.min(count, 2));
+            if (isFuture){
+              cell.dataset.future = "1";
+            } else {
+              const dateLabel = day.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+              cell.title = count === 0
+                ? `No sessions on ${dateLabel}`
+                : `${count} session${count !== 1 ? "s" : ""} on ${dateLabel}`;
+            }
+            weekCol.appendChild(cell);
+          });
+          grid.appendChild(weekCol);
+        });
+
+        gridArea.appendChild(dayLabelsEl);
+        gridArea.appendChild(grid);
+        heatmapWrap.appendChild(monthRow);
+        heatmapWrap.appendChild(gridArea);
+
+        const legend = document.createElement("div");
+        legend.className = "hearthHeatmapLegend";
+        const lessSpan = document.createElement("span");
+        lessSpan.className = "hearthHeatmapLegendLabel";
+        lessSpan.textContent = "Less";
+        legend.appendChild(lessSpan);
+        [0, 1, 2].forEach(level => {
+          const lc = document.createElement("div");
+          lc.className = "hearthHeatmapCell";
+          lc.dataset.level = String(level);
+          legend.appendChild(lc);
+        });
+        const moreSpan = document.createElement("span");
+        moreSpan.className = "hearthHeatmapLegendLabel";
+        moreSpan.textContent = "More";
+        legend.appendChild(moreSpan);
+        heatmapWrap.appendChild(legend);
+
+        container.appendChild(heatmapWrap);
       }
 
       function dismissHearth(){
