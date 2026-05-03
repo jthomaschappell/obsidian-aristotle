@@ -137,7 +137,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const files = fs.readdirSync(SUMMARIES_DIR)
-        .filter((f) => f.endsWith(".md"))
+        .filter((f) => f.endsWith(".md") && !f.startsWith("."))
         .map((filename) => {
           const stat = fs.statSync(path.join(SUMMARIES_DIR, filename));
           return { filename, mtime: stat.mtimeMs };

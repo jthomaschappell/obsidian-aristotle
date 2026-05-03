@@ -675,6 +675,134 @@
           flex:0 1 auto;
         }
       }
+
+      /* ---- Hearth Screen ---- */
+      .hearthScreen{
+        position:fixed;
+        inset:0;
+        z-index:9999;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:var(--surface);
+        opacity:1;
+        transition:opacity 0.4s ease;
+      }
+
+      .hearthScreen.dismissing{
+        opacity:0;
+        pointer-events:none;
+      }
+
+      .hearthCard{
+        width:100%;
+        max-width:460px;
+        padding:40px 36px;
+        background:var(--surfaceContainerLowest);
+        border-radius:20px;
+        outline:1px solid var(--ghostOutline);
+        text-align:center;
+      }
+
+      .hearthLogoRow{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:12px;
+        margin-bottom:20px;
+      }
+
+      .hearthLogo{
+        width:36px;
+        height:36px;
+      }
+
+      .hearthAppName{
+        font-family:"Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight:900;
+        font-size:1.5rem;
+        letter-spacing:-0.02em;
+        color:var(--onSurface);
+      }
+
+      .hearthGreeting{
+        font-size:1.05rem;
+        font-weight:700;
+        color:var(--onSurface);
+        margin:0 0 12px;
+      }
+
+      .hearthQuote{
+        font-style:italic;
+        font-size:0.9rem;
+        color:var(--onSurfaceVariant);
+        margin:0 0 28px;
+        line-height:1.7;
+      }
+
+      .hearthQuoteAttr{
+        display:block;
+        font-style:normal;
+        font-size:0.8rem;
+        font-family:"Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight:700;
+        color:var(--primary);
+        margin-top:6px;
+      }
+
+      .hearthSessions{
+        margin-bottom:28px;
+      }
+
+      .hearthSessionsLabel{
+        font-size:0.72rem;
+        font-family:"Space Grotesk", Inter, system-ui, sans-serif;
+        font-weight:700;
+        color:var(--onSurfaceVariant);
+        letter-spacing:0.07em;
+        text-transform:uppercase;
+        margin-bottom:8px;
+        text-align:left;
+      }
+
+      .hearthSessionItem{
+        background:var(--surfaceContainerLow);
+        border-radius:10px;
+        padding:10px 12px;
+        margin-bottom:6px;
+        outline:1px solid var(--ghostOutline);
+        text-align:left;
+      }
+
+      .hearthSessionDate{
+        font-weight:800;
+        font-size:0.85rem;
+        color:var(--onSurface);
+      }
+
+      .hearthSessionNotes{
+        font-size:0.78rem;
+        color:var(--onSurfaceVariant);
+        margin-top:2px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      }
+
+      .hearthNoSessions{
+        color:var(--onSurfaceVariant);
+        font-size:0.85rem;
+        font-style:italic;
+        text-align:center;
+        padding:6px 0;
+      }
+
+      .hearthBeginBtn{
+        width:100%;
+        padding:14px;
+        font-size:1rem;
+        border-radius:12px;
+      }
     </style>
   </head>
   <body>
@@ -707,6 +835,19 @@
         </svg>
       </button>
     </header>
+
+    <div id="hearthScreen" class="hearthScreen">
+      <div class="hearthCard">
+        <div class="hearthLogoRow">
+          <img src="https://obsidian.md/images/obsidian-logo-gradient.svg" alt="" class="hearthLogo" aria-hidden="true" />
+          <span class="hearthAppName">Aristotle</span>
+        </div>
+        <p id="hearthGreeting" class="hearthGreeting"></p>
+        <p id="hearthQuote" class="hearthQuote"></p>
+        <div id="hearthSessions" class="hearthSessions"></div>
+        <button id="hearthBeginBtn" class="primary hearthBeginBtn">Begin New Session</button>
+      </div>
+    </div>
 
     <div class="layout">
       <div class="left">
@@ -943,7 +1084,7 @@ Rules:
 
       const API = {
         endpoint: "https://openrouter.ai/api/v1/chat/completions",
-        model: "anthropic/claude-3.5-sonnet",
+        model: "anthropic/claude-sonnet-4-5",
         maxTokens: 1024,
       };
 
@@ -1972,7 +2113,110 @@ Rules:
         renderNotesList();
       }
 
+      // ---- Hearth Screen ----
+
+      const HEARTH_QUOTES = [
+        { text: "Knowing yourself is the beginning of all wisdom.", attr: "Aristotle" },
+        { text: "The roots of education are bitter, but the fruit is sweet.", attr: "Aristotle" },
+        { text: "An investment in knowledge pays the best interest.", attr: "Benjamin Franklin" },
+        { text: "Education is not the filling of a pail, but the lighting of a fire.", attr: "W.B. Yeats" },
+        { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", attr: "Gandhi" },
+        { text: "The more that you read, the more things you will know.", attr: "Dr. Seuss" },
+      ];
+
+      function getGreeting(){
+        const h = new Date().getHours();
+        if (h >= 5 && h < 12) return "Good morning, scholar.";
+        if (h >= 12 && h < 18) return "Good afternoon, scholar.";
+        return "Good evening, scholar.";
+      }
+
+      function parseHearthSession(filename, content){
+        const date = formatFilenameAsDate(filename);
+        const notes = [];
+        let inNotesList = false;
+        for (const line of content.split("\n")){
+          if (line.includes("**Notes studied:**")){ inNotesList = true; continue; }
+          if (inNotesList){
+            if (line.startsWith("- ")){
+              const p = line.slice(2).trim().split("/");
+              notes.push(p[p.length - 1].replace(/\.md$/, ""));
+            } else if (line.trim() === "" || line.startsWith("---")){
+              break;
+            }
+          }
+        }
+        return { date, notes };
+      }
+
+      async function loadHearthSessions(){
+        const container = document.getElementById("hearthSessions");
+        try {
+          const res = await fetch("/api/summaries");
+          if (!res.ok) throw new Error();
+          const { summaries } = await res.json();
+
+          if (summaries.length === 0){
+            container.innerHTML = `<div class="hearthNoSessions">No sessions yet — start your first one.</div>`;
+            return;
+          }
+
+          const top2 = summaries.slice(0, 2);
+          const contents = await Promise.all(
+            top2.map(s => fetch(`/api/summaries/${encodeURIComponent(s.filename)}`).then(r => r.ok ? r.text() : Promise.reject()))
+          );
+
+          const label = document.createElement("div");
+          label.className = "hearthSessionsLabel";
+          label.textContent = "Recent Sessions";
+          container.appendChild(label);
+
+          top2.forEach((s, i) => {
+            const { date, notes } = parseHearthSession(s.filename, contents[i]);
+            const item = document.createElement("div");
+            item.className = "hearthSessionItem";
+
+            const dateEl = document.createElement("div");
+            dateEl.className = "hearthSessionDate";
+            dateEl.textContent = date;
+
+            const displayed = notes.slice(0, 3);
+            const extra = notes.length - displayed.length;
+            const notesEl = document.createElement("div");
+            notesEl.className = "hearthSessionNotes";
+            notesEl.textContent = displayed.join(", ") + (extra > 0 ? ` +${extra} more` : "");
+
+            item.appendChild(dateEl);
+            if (notes.length > 0) item.appendChild(notesEl);
+            container.appendChild(item);
+          });
+        } catch {
+          container.innerHTML = `<div class="hearthNoSessions">No recent sessions found.</div>`;
+        }
+      }
+
+      function dismissHearth(){
+        const el = document.getElementById("hearthScreen");
+        el.classList.add("dismissing");
+        el.addEventListener("transitionend", () => el.classList.add("hidden"), { once: true });
+      }
+
+      async function initHearth(){
+        document.getElementById("hearthGreeting").textContent = getGreeting();
+
+        const q = HEARTH_QUOTES[Math.floor(Math.random() * HEARTH_QUOTES.length)];
+        document.getElementById("hearthQuote").innerHTML =
+          `“${escapeHtml(q.text)}”<span class="hearthQuoteAttr">— ${escapeHtml(q.attr)}</span>`;
+
+        await loadHearthSessions();
+
+        document.getElementById("hearthBeginBtn").addEventListener("click", dismissHearth);
+      }
+
+      // ---- End Hearth Screen ----
+
       initUI();
+      initHearth();
     </script>
   </body>
 </html>
