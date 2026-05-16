@@ -1,48 +1,67 @@
-# Serving the Study Agent
+# Aristotle — Study Agent
 
-This repo contains a single-page app: `study-agent.html`.
+Socratic study agent for your Obsidian vault, built with **Next.js**.
 
 The File System Access API used by the "Open Vault" button works best in a secure context; serving from `http://localhost` is considered secure by modern browsers.
 
 ## Quick start
 
-1. Make sure you have Node.js installed (`node --version`).
-2. Create a `.env` file in the project root and add your key:
-   - `API_KEY=sk-or-...` (OpenRouter key for the default chat endpoint)
-3. From the repo directory:
-   - `node server.js`
-4. Open in Chrome/Edge:
-   - `http://127.0.0.1:3000`
+1. Install Node.js (`node --version`).
+2. Create a `.env` file in the project root:
+   - `API_KEY=sk-or-...` (OpenRouter key for chat)
+3. Install dependencies and run the dev server:
 
-The server injects the key from `.env` into the served page automatically — no need to paste it each session.
+```bash
+npm install
+npm run dev
+```
+
+4. Open in Chrome or Edge: **http://127.0.0.1:3000**
+
+The server passes `API_KEY` from `.env` into the page on load — no need to paste it each session.
+
+## Scripts
+
+| Command        | Description              |
+|----------------|--------------------------|
+| `npm run dev`  | Development server       |
+| `npm run build`| Production build         |
+| `npm run start`| Serve production build   |
 
 ## Custom host/port
 
-- `HOST=127.0.0.1 PORT=3000 node server.js`
+```bash
+HOST=127.0.0.1 PORT=3000 npm run dev
+```
 
 ## API key UX
+
 - After you paste and save your key, the input is replaced by a “saved for this session” indicator.
-- Clicking **Edit** opens a blank masked (`password`) input: it never pre-fills or displays your existing key.
-- Use **Save** to replace the key, or **Cancel** to return without changing it.
-- If running via the local server with a `.env` key set, the key is pre-loaded and the indicator shows immediately on page load.
+- **Edit** opens a blank masked input — it never pre-fills your existing key.
+- With `API_KEY` in `.env`, the key is pre-loaded on page load.
 
 ## Vault loading
-- Opening a vault shows a scan spinner and a determinate progress bar while all `.md` files are read from the chosen folder.
-- Once loaded, the notes list is scrollable and constrained — it does not extend the full page.
+
+- Opening a vault shows a scan spinner and progress bar while `.md` files are read.
+- The notes list is scrollable and does not extend the full page.
 
 ## Notes list controls
-- **Sort order**: toggle between A→Z and Z→A by file path.
-- **Filter**: type to narrow the visible notes list.
-- **Select/Deselect All** operates only on the currently filtered set.
+
+- **Sort**: A→Z or Z→A by file path.
+- **Filter**: narrow the visible list.
+- **Select/Deselect All**: only the filtered set.
+
+## Session history
+
+Ended sessions are saved under `session-summaries/` (gitignored) via `/api/summaries`.
 
 ## Manual QA
 
 1. Load `http://127.0.0.1:3000` and confirm the page renders.
-2. If `.env` is configured, confirm the API key indicator shows "saved for this session" without any input.
+2. If `.env` has `API_KEY`, confirm the API key indicator shows without input.
 3. Click **Open Vault** and confirm the directory picker opens.
-4. Select a folder with `.md` notes and confirm the scan spinner and progress bar appear, then notes render.
-5. Use the sort dropdown and filter field; confirm list order and that **Select/Deselect All** respects the filter.
-6. Confirm the notes list scrolls when there are many notes.
-7. Start a session and confirm Claude streaming output appears.
+4. Select a folder with `.md` notes; confirm spinner and progress bar, then notes render.
+5. Use sort and filter; confirm **Select/Deselect All** respects the filter.
+6. Confirm the notes list scrolls with many notes.
+7. Start a session and confirm streaming assistant output.
 8. Verify `GET /healthz` returns `{ "ok": true }`.
-

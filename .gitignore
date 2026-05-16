@@ -23,6 +23,8 @@ node_modules/
 dist/
 build/
 coverage/
+.next/
+out/
 
 # Personal session summaries (local only — not for version control)
 session-summaries/
