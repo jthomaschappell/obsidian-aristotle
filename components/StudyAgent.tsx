@@ -770,8 +770,8 @@ export default function StudyAgent({
             {!apiKeySaved ? (
               <div id="apiKeyEditWrap">
                 <div className="meta" style={{ marginBottom: 6 }}>
-                  API key (sessionStorage for this tab). Optional: set API_KEY in
-                  .env when using the local server — see README.
+                  API key (OpenRouter sk-or-… or Anthropic sk-ant-…). Optional:
+                  set API_KEY in .env — see README.
                 </div>
                 <div className="keyRow">
                   <input

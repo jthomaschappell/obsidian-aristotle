@@ -22,6 +22,25 @@ export const OPENROUTER_API = {
   maxTokens: 1024,
 } as const;
 
+export const ANTHROPIC_API = {
+  endpoint: "https://api.anthropic.com/v1/messages",
+  model: "claude-3-5-sonnet-20241022",
+  maxTokens: 1024,
+  version: "2023-06-01",
+} as const;
+
+export type ApiProvider = "openrouter" | "anthropic";
+
+/** Route by key prefix: OpenRouter (sk-or-...) vs Anthropic direct (sk-ant-...). */
+export function detectApiProvider(apiKey: string): ApiProvider {
+  const key = apiKey.trim();
+  if (key.startsWith("sk-or-")) return "openrouter";
+  if (key.startsWith("sk-ant-")) return "anthropic";
+  throw new Error(
+    "Unrecognized API key. Use an OpenRouter key (sk-or-...) or an Anthropic key (sk-ant-...)."
+  );
+}
+
 export const THEME_KEY = "study-agent-theme";
 export const API_KEY_STORAGE = "claudeApiKey";
 export const PROMPT_STORAGE = "studyPromptTemplate";

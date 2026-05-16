@@ -8,7 +8,7 @@ The File System Access API used by the "Open Vault" button works best in a secur
 
 1. Install Node.js (`node --version`).
 2. Create a `.env` file in the project root:
-   - `API_KEY=sk-or-...` (OpenRouter key for chat)
+   - `API_KEY=sk-or-...` (OpenRouter) or `API_KEY=sk-ant-...` (Anthropic direct)
 3. Install dependencies and run the dev server:
 
 ```bash
