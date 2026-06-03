@@ -1,7 +1,11 @@
 # Aristotle — Study Agent
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Socratic study agent for your Obsidian vault, built with **Next.js**.
+=======
+This repo contains a single-page app rooted at [`study-agent.html`](study-agent.html). Styles live in [`public/css/study-agent.css`](public/css/study-agent.css) and application logic in ES modules under [`public/js/study-agent/`](public/js/study-agent/) (entry: `main.js`). The HTTP server serves those paths under `/public/...`.
+>>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
 =======
 This repo contains a single-page app rooted at [`study-agent.html`](study-agent.html). Styles live in [`public/css/study-agent.css`](public/css/study-agent.css) and application logic in ES modules under [`public/js/study-agent/`](public/js/study-agent/) (entry: `main.js`). The HTTP server serves those paths under `/public/...`.
 >>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
@@ -23,6 +27,9 @@ The File System Access API used by the "Open Vault" button works best in a secur
    - `node server.js`
 4. Open in Chrome/Edge:
    - `http://127.0.0.1:3010`
+<<<<<<< HEAD
+>>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
+=======
 >>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
 
 ```bash
@@ -45,9 +52,13 @@ The server passes `API_KEY` from `.env` into the page on load — no need to pas
 ## Custom host/port
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ```bash
 HOST=127.0.0.1 PORT=3000 npm run dev
 ```
+=======
+- `HOST=127.0.0.1 PORT=3010 node server.js`
+>>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
 =======
 - `HOST=127.0.0.1 PORT=3010 node server.js`
 >>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
@@ -76,9 +87,12 @@ Ended sessions are saved under `session-summaries/` (gitignored) via `/api/summa
 ## Manual QA
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 1. Load `http://127.0.0.1:3000` and confirm the page renders.
 2. If `.env` has `API_KEY`, confirm the API key indicator shows without input.
 =======
+=======
+>>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2
 1. Load `http://127.0.0.1:3010` and confirm the page renders.
 2. If `.env` is configured, confirm the API key indicator shows "saved for this session" without any input.
 >>>>>>> 31e36d9d81339a96ed31a505e4dda1d8852f4ed2

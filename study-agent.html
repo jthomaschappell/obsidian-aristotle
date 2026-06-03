@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Study Agent (Claude)</title>
+    <script>
+      window.__API_KEY_FROM_ENV__ = "";
+    </script>
+    <link rel="stylesheet" href="/public/css/study-agent.css" />
+  </head>
+  <body>
+    <div id="unsupportedBanner" class="banner">
+      This app requires Chrome or Edge (File System Access API).
+    </div>
+
+    <div id="insecureContextBanner" class="banner">
+      This app requires a secure context (https or http://localhost) for the File System Access API.
+    </div>
+
+    <header class="appHeader">
+      <img src="https://obsidian.md/images/obsidian-logo-gradient.svg" alt="Obsidian" class="appLogo" />
+      <div>
+        <div class="appTitle">Aristotle</div>
+        <div class="appSubtitle">Socratic study agent for your Obsidian vault</div>
+      </div>
+      <button id="themeToggleBtn" class="themeToggle" aria-label="Toggle light/dark mode" title="Toggle theme">
+        <!-- Sun — shown in dark mode (click to go light) -->
+        <svg id="themeSunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Moon — shown in light mode (click to go dark) -->
+        <svg id="themeMoonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="hidden">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </header>
+
+    <div id="hearthScreen" class="hearthScreen">
+      <div class="hearthCard">
+        <div class="hearthLogoRow">
+          <img src="https://obsidian.md/images/obsidian-logo-gradient.svg" alt="" class="hearthLogo" aria-hidden="true" />
+          <span class="hearthAppName">Aristotle</span>
+        </div>
+        <p id="hearthGreeting" class="hearthGreeting"></p>
+        <p id="hearthQuote" class="hearthQuote"></p>
+        <div id="hearthSessions" class="hearthSessions"></div>
+        <button id="hearthBeginBtn" class="primary hearthBeginBtn">Begin New Session</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="left">
+        <div class="card">
+          <div class="row" style="justify-content:space-between;">
+            <button id="openVaultBtn">Open Vault</button>
+          </div>
+          <div id="vaultStatus" class="meta" style="margin-top:10px;"></div>
+          <div id="vaultLoadPanel" class="vaultLoadPanel hidden" aria-live="polite">
+            <div class="vaultLoadTop">
+              <div class="vaultRing" aria-hidden="true"></div>
+              <div id="vaultLoadLabel" class="meta" style="font-weight:800;">Loading notes…</div>
+            </div>
+            <div class="vaultProgressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="vaultProgressTrack">
+              <div id="vaultProgressFill" class="vaultProgressFill"></div>
+            </div>
+          </div>
+          <div id="noMdFound" class="meta" style="margin-top:10px; font-weight:700;"></div>
+
+          <div style="margin-top:12px;">
+            <input id="noteSearch" type="text" placeholder="Filter notes by name or path" autocomplete="off" />
+          </div>
+
+          <div class="sortRow">
+            <label for="noteSortOrder">Sort</label>
+            <select id="noteSortOrder" aria-label="Sort notes">
+              <option value="asc">A → Z (path)</option>
+              <option value="desc">Z → A (path)</option>
+            </select>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <button id="selectAllBtn" style="flex:1;">Select all</button>
+            <button id="deselectAllBtn" style="flex:1;">Deselect all</button>
+          </div>
+
+          <div class="tokenRow" style="margin-top:10px;">
+            <div id="noteCount" class="meta">0 notes selected</div>
+            <div id="tokenEstimate" class="meta">Estimated tokens: 0</div>
+          </div>
+
+          <div id="tokenWarning" class="warning hidden" style="margin-top:10px;">
+            Context may be too large — please deselect some notes.
+          </div>
+
+          <div style="margin-top:12px;" class="list" id="mdList" aria-label="Notes list"></div>
+
+          <div style="margin-top:12px;">
+            <button id="startBtn" class="primary" style="width:100%;" disabled>Start Session</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div id="apiKeyEditWrap">
+            <div class="meta" style="margin-bottom:6px;">API key (sessionStorage for this tab). Optional: set API_KEY in .env when using the local server — see README.</div>
+            <div class="keyRow">
+              <input id="apiKeyInput" type="password" placeholder="Paste your API key" autocomplete="off" />
+            </div>
+            <div class="keyEditActions">
+              <button id="saveApiKeyBtn" class="primary" type="button">Save</button>
+              <button id="cancelApiKeyBtn" type="button">Cancel</button>
+            </div>
+          </div>
+          <div id="apiKeySavedWrap" class="hidden">
+            <div class="meta" style="margin-bottom:6px;">Claude API key</div>
+            <div class="apiKeySuccessRow">
+              <span class="checkIcon" aria-hidden="true">✓</span>
+              <span class="successLabel">API key saved for this session</span>
+              <button id="editKeyBtn" class="linkBtn" type="button">Edit</button>
+            </div>
+          </div>
+          <div id="apiKeyError" class="meta" style="margin-top:10px; color:#991b1b; font-weight:700;"></div>
+
+          <div class="sectionSplit">
+            <div id="promptEditWrap">
+              <div class="meta" style="margin-bottom:6px;">System prompt — use <code style="font-family:monospace; font-size:0.85em;">{NOTES}</code> where selected notes are inserted.</div>
+              <textarea id="promptInput" style="min-height:160px; font-size:0.85rem;"></textarea>
+              <div style="margin-top:8px; display:flex; gap:8px;">
+                <button id="savePromptBtn" class="primary" style="flex:1;">Save Prompt</button>
+                <button id="resetPromptBtn" style="flex:1;">Reset to Default</button>
+              </div>
+            </div>
+            <div id="promptSavedWrap" class="hidden">
+              <div class="meta" style="margin-bottom:6px;">System prompt</div>
+              <div class="apiKeySuccessRow">
+                <span class="checkIcon" aria-hidden="true">✓</span>
+                <span class="successLabel" id="promptSavedLabel">Default prompt active</span>
+                <button id="editPromptBtn" class="linkBtn" type="button">Edit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tabBar" role="tablist">
+          <button id="sessionTabBtn" class="tabBtn active" role="tab">Session</button>
+          <button id="historyTabBtn" class="tabBtn" role="tab">History</button>
+        </div>
+
+        <div id="sessionTabContent" class="tabContent">
+          <div id="chatWrap" class="chatWrap" aria-live="polite">
+            <div id="emptyState" class="emptyState">
+              Select notes on the left, then click <span id="emptyStateStartLink" style="color:var(--primary); cursor:pointer; text-decoration:underline dotted;">Start Session</span>.
+            </div>
+          </div>
+
+          <div id="composerWrap" class="hidden">
+            <div class="composer">
+              <div class="composerLeft">
+                <textarea id="userInput" placeholder="Type your answer... (or type 'end session')" ></textarea>
+                <div class="kbd" style="margin-top:6px;">Tip: Enter to send · Shift+Enter for newline</div>
+              </div>
+              <div class="composerActions">
+                <button id="sendBtn" class="primary" style="min-width:150px;">Send</button>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <button id="endBtn" class="endBtn" style="width:100%;">End Session</button>
+            </div>
+          </div>
+
+          <div id="newSessionWrap" class="hidden">
+            <button id="newSessionBtn" style="width:100%;" class="primary">New Session</button>
+            <div class="meta" style="margin-top:10px;">You can pick different notes and start again.</div>
+          </div>
+        </div>
+
+        <div id="historyTabContent" class="tabContent hidden">
+          <div id="historyListView" style="flex:1; min-height:0; display:flex; flex-direction:column;">
+            <div class="meta" style="margin-bottom:8px; font-weight:700;">Past Sessions</div>
+            <div id="historyListInner" class="list" style="flex:1;"></div>
+          </div>
+          <div id="historyDetailView" class="hidden" style="flex:1; min-height:0; display:flex; flex-direction:column; gap:10px;">
+            <button id="historyBackBtn" style="align-self:flex-start;">← Back to History</button>
+            <div id="historyDetailContent" class="list mdContent" style="flex:1;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/public/js/study-agent/main.js"></script>
+  </body>
+</html>
