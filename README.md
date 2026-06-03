@@ -2,7 +2,7 @@
 
 Socratic study agent for your Obsidian vault, built with **Next.js**.
 
-The File System Access API used by the "Open Vault" button works best in a secure context; serving from `http://localhost` is considered secure by modern browsers. **Use `npm run dev` and open the app URL** — opening `study-agent.html` via `file://` will not load assets correctly.
+The File System Access API used by the "Open Vault" button works best in a secure context; serving from `http://localhost` is considered secure by modern browsers. **Use `npm run dev` and open the app URL.**
 
 ## Quick start
 

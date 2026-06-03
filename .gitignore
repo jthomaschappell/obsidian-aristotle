@@ -31,3 +31,4 @@ session-summaries/
 
 # apple double files
 ._*
+tsconfig.tsbuildinfo

@@ -4,13 +4,13 @@
 
 A browser study agent powered by Claude. The user opens the app from the local server in Chrome, points it at their Obsidian vault folder, selects notes to study, and enters a Socratic Q&A session where Claude asks questions, evaluates answers, corrects misconceptions, and surfaces connections between notes.
 
-The UI is served from `study-agent.html` plus static assets under `public/`. Use `server.js` so `http://localhost` provides a secure context for the File System Access API and so ES modules and CSS resolve correctly.
+The app is a **Next.js** application (`app/` routes, React components in `components/`, shared logic in `lib/`). Run `npm run dev` so `http://localhost` provides a secure context for the File System Access API.
 
 ---
 
 ## Core User Flow
 
-1. User opens the app from the local server (e.g. `http://127.0.0.1:3000/`) in Chrome — `study-agent.html` is the shell; CSS/JS are loaded from `/public/`
+1. User opens the app from the dev server (e.g. `http://127.0.0.1:3000/`) in Chrome
 2. User clicks "Open Vault" — browser folder picker opens (`showDirectoryPicker()`)
 3. App reads all `.md` files recursively from the selected folder
 4. User selects which notes to study (multi-select list with search/filter)
@@ -26,11 +26,11 @@ The UI is served from `study-agent.html` plus static assets under `public/`. Use
 
 ## Technical Constraints
 
-- **Split assets**: `study-agent.html` is the HTML shell; CSS in `public/css/`, JavaScript as ES modules in `public/js/study-agent/`
-- **Local server**: Node (`server.js`) serves the page, injects optional `API_KEY` from `.env`, exposes `/public/` static files, and session summary APIs — required for normal operation (not `file://`)
+- **Next.js app**: pages and API routes under `app/`, React components in `components/`, shared logic in `lib/`
+- **Dev server**: `npm run dev` serves the app, passes `API_KEY` (or `OPENROUTER_API_KEY`) from `.env` into the page, and exposes session summary APIs under `/api/summaries` — required for normal operation (not `file://`)
 - **Chrome required**: uses `showDirectoryPicker()` (File System Access API), which is Chrome/Edge only — display a clear warning if running in an unsupported browser
 - **Claude API**: calls `https://api.anthropic.com/v1/messages` directly from the browser using `fetch()`
-- **No API key storage**: user pastes their API key into a field on first use; store it in `sessionStorage` only (not `localStorage`) so it clears when the tab closes
+- **No in-app API key entry**: the key comes from `.env` only (`API_KEY` or `OPENROUTER_API_KEY`); it is never stored in `localStorage`/`sessionStorage`
 - **Streaming responses**: use `stream: true` on the Claude API call and render tokens as they arrive so responses feel fast
 
 ---
@@ -202,12 +202,12 @@ These are intentionally out of scope. Do not implement them.
 - Mobile support
 - Export or save functionality
 - Obsidian plugin integration
-- OAuth or any auth beyond a pasted API key
+- OAuth or any auth beyond an API key in `.env`
 
 ---
 
 ## File Deliverable
 
-Primary shell: `study-agent.html`, plus static assets under `public/` (CSS and ES modules). Run `node server.js` and open the served URL in Chrome.
+Next.js app: routes under `app/`, components in `components/`, shared logic in `lib/`. Run `npm run dev` and open the served URL in Chrome.
 
 See [`README.md`](README.md) for layout and setup.
