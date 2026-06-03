@@ -7,8 +7,9 @@ The File System Access API used by the "Open Vault" button works best in a secur
 ## Quick start
 
 1. Install Node.js (`node --version`).
-2. Create a `.env` file in the project root:
+2. Create a `.env` file in the project root (required):
    - `API_KEY=sk-or-...` (OpenRouter) or `API_KEY=sk-ant-...` (Anthropic direct)
+   - or `OPENROUTER_API_KEY=sk-or-...` (OpenRouter only)
 3. Install dependencies and run the dev server:
 
 ```bash
@@ -18,7 +19,7 @@ npm run dev
 
 4. Open in Chrome or Edge: **http://127.0.0.1:3000**
 
-The server passes `API_KEY` from `.env` into the page on load — no need to paste it each session.
+The server reads the API key from `.env` only — there is no in-app key entry.
 
 ## Scripts
 
@@ -34,11 +35,10 @@ The server passes `API_KEY` from `.env` into the page on load — no need to pas
 HOST=127.0.0.1 PORT=3000 npm run dev
 ```
 
-## API key UX
+## API key
 
-- After you paste and save your key, the input is replaced by a "saved for this session" indicator.
-- **Edit** opens a blank masked input — it never pre-fills your existing key.
-- With `API_KEY` in `.env`, the key is pre-loaded on page load.
+- Set `API_KEY` or `OPENROUTER_API_KEY` in `.env`, then restart `npm run dev`.
+- The sidebar shows **Loaded from .env** when configured, or setup instructions when missing.
 
 ## Vault loading
 
@@ -58,7 +58,7 @@ Ended sessions are saved under `session-summaries/` (gitignored) via `/api/summa
 ## Manual QA
 
 1. Load `http://127.0.0.1:3000` and confirm the page renders.
-2. If `.env` has `API_KEY`, confirm the API key indicator shows without input.
+2. With `.env` configured, confirm the sidebar shows **Loaded from .env**.
 3. Click **Open Vault** and confirm the directory picker opens.
 4. Select a folder with `.md` notes; confirm spinner and progress bar, then notes render.
 5. Use sort and filter; confirm **Select/Deselect All** respects the filter.

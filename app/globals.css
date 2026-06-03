@@ -499,31 +499,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus{
   flex-wrap:wrap;
 }
 
-.keyRow{
-  display:flex;
-  gap:10px;
-  align-items:stretch;
-}
-
-.keyRow > input{
-  flex:1;
-  min-width:0;
-  width:100%;
-  box-sizing:border-box;
-}
-
-.keyEditActions{
-  display:flex;
-  gap:8px;
-  margin-top:8px;
-  flex-wrap:wrap;
-}
-
-.keyEditActions button.primary{
-  flex:1;
-  min-width:120px;
-}
-
 .appHeader{
   display:flex;
   align-items:center;

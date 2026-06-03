@@ -7,7 +7,6 @@ import {
   streamClaudeText,
 } from "@/lib/claude";
 import {
-  API_KEY_STORAGE,
   DEFAULT_SYSTEM_PROMPT_TEMPLATE,
   PROMPT_STORAGE,
   THEME_KEY,
@@ -66,10 +65,7 @@ export default function StudyAgent({
   const [showSpinner, setShowSpinner] = useState(false);
   const [showEmptyState, setShowEmptyState] = useState(true);
 
-  const [apiKeySaved, setApiKeySaved] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyError, setApiKeyError] = useState("");
-  const [apiKeyLocked, setApiKeyLocked] = useState(false);
 
   const [promptEditing, setPromptEditing] = useState(false);
   const [promptInput, setPromptInput] = useState(DEFAULT_SYSTEM_PROMPT_TEMPLATE);
@@ -109,29 +105,14 @@ export default function StudyAgent({
       initialTheme === "light" ? "light" : "dark"
     );
 
-    const envKey = apiKeyFromEnv.trim();
-    const storedKey = sessionStorage.getItem(API_KEY_STORAGE) || "";
-    if (envKey) {
-      sessionStorage.setItem(API_KEY_STORAGE, envKey);
-      setApiKeySaved(true);
-    } else if (storedKey.trim()) {
-      setApiKeySaved(true);
-    }
-
     const storedPrompt = sessionStorage.getItem(PROMPT_STORAGE) || "";
     if (storedPrompt) {
       setHasCustomPrompt(true);
       setPromptInput(storedPrompt);
     }
-  }, [apiKeyFromEnv]);
+  }, []);
 
-  const getStoredApiKey = () => sessionStorage.getItem(API_KEY_STORAGE) || "";
-
-  const getApiKey = useCallback(() => {
-    const fromInput = apiKeyInput.trim();
-    if (fromInput) return fromInput;
-    return getStoredApiKey().trim();
-  }, [apiKeyInput]);
+  const apiKey = apiKeyFromEnv.trim();
 
   const getActivePromptTemplate = () =>
     sessionStorage.getItem(PROMPT_STORAGE) || DEFAULT_SYSTEM_PROMPT_TEMPLATE;
@@ -181,24 +162,8 @@ export default function StudyAgent({
     );
   };
 
-  const commitApiKey = () => {
-    const k = apiKeyInput.trim();
-    if (k) {
-      sessionStorage.setItem(API_KEY_STORAGE, k);
-      setApiKeySaved(true);
-      setApiKeyError("");
-      setApiKeyInput("");
-      return true;
-    }
-    if (getStoredApiKey().trim()) {
-      setApiKeyError(
-        "Paste a new key to replace the saved one, or click Cancel to keep it."
-      );
-    } else {
-      setApiKeyError("Paste your API key.");
-    }
-    return false;
-  };
+  const missingApiKeyMessage =
+    "API key not configured. Set API_KEY or OPENROUTER_API_KEY in .env and restart the dev server.";
 
   const commitPrompt = () => {
     const val = promptInput.trim();
@@ -336,10 +301,8 @@ export default function StudyAgent({
     systemPrompt: string,
     onDone?: (assistantText: string) => void
   ) => {
-    const apiKey = getApiKey();
     if (!apiKey) {
-      setApiKeySaved(false);
-      setApiKeyError("Missing API key. Paste it into the field above.");
+      setApiKeyError(missingApiKeyMessage);
       return;
     }
 
@@ -401,15 +364,10 @@ export default function StudyAgent({
 
   const startSession = async () => {
     if (streaming || selectedNotes.length === 0) return;
-    const apiKey = getApiKey();
     if (!apiKey) {
-      setApiKeySaved(false);
-      setApiKeyError("Missing API key. Paste it into the field above.");
+      setApiKeyError(missingApiKeyMessage);
       return;
     }
-    sessionStorage.setItem(API_KEY_STORAGE, apiKey);
-    setApiKeySaved(true);
-    setApiKeyLocked(true);
     setApiKeyError("");
 
     setSessionStarted(true);
@@ -430,13 +388,10 @@ export default function StudyAgent({
       setVaultStatus("Session started. Answer the question below.");
     } catch {
       setSessionStarted(false);
-      setApiKeyLocked(false);
       setShowEmptyState(true);
       setVaultStatus("Claude request failed. You can try again.");
     }
   };
-
-  const clearInlineApiKeyError = () => setApiKeyError("");
 
   const sendMessage = async (overrideText?: string) => {
     if (streaming || sessionEnded) return;
@@ -444,14 +399,11 @@ export default function StudyAgent({
     const text = raw.trim();
     if (!text) return;
 
-    const apiKey = getApiKey();
     if (!apiKey) {
-      setApiKeySaved(false);
-      setApiKeyError("Missing API key. Edit and paste it again.");
+      setApiKeyError(missingApiKeyMessage);
       return;
     }
-    sessionStorage.setItem(API_KEY_STORAGE, apiKey);
-    clearInlineApiKeyError();
+    setApiKeyError("");
 
     const normalized = text.toLowerCase() === "end session" ? "end session" : text;
     const isEndTurn = normalized === "end session";
@@ -475,7 +427,6 @@ export default function StudyAgent({
         if (isEndTurn) {
           setSessionEnded(true);
           setSessionStarted(false);
-          setApiKeyLocked(false);
           setVaultStatus("Session ended.");
           saveSessionSummary(selectedNotes, assistantText);
         }
@@ -767,81 +718,25 @@ export default function StudyAgent({
 
         <div className="right">
           <div className="card">
-            {!apiKeySaved ? (
-              <div id="apiKeyEditWrap">
-                <div className="meta" style={{ marginBottom: 6 }}>
-                  API key (OpenRouter sk-or-… or Anthropic sk-ant-…). Optional:
-                  set API_KEY in .env — see README.
-                </div>
-                <div className="keyRow">
-                  <input
-                    id="apiKeyInput"
-                    type="password"
-                    placeholder="Paste your API key"
-                    autoComplete="off"
-                    value={apiKeyInput}
-                    disabled={apiKeyLocked}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        commitApiKey();
-                      }
-                    }}
-                  />
-                </div>
-                <div className="keyEditActions">
-                  <button
-                    type="button"
-                    id="saveApiKeyBtn"
-                    className="primary"
-                    disabled={apiKeyLocked}
-                    onClick={commitApiKey}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    id="cancelApiKeyBtn"
-                    disabled={apiKeyLocked}
-                    onClick={() => {
-                      setApiKeyError("");
-                      setApiKeyInput("");
-                      if (getStoredApiKey().trim()) setApiKeySaved(true);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
+            <div id="apiKeyStatusWrap">
+              <div className="meta" style={{ marginBottom: 6 }}>
+                API key
               </div>
-            ) : (
-              <div id="apiKeySavedWrap">
-                <div className="meta" style={{ marginBottom: 6 }}>
-                  Claude API key
-                </div>
+              {apiKey ? (
                 <div className="apiKeySuccessRow">
                   <span className="checkIcon" aria-hidden="true">
                     ✓
                   </span>
-                  <span className="successLabel">
-                    API key saved for this session
-                  </span>
-                  {!apiKeyLocked && (
-                    <button
-                      type="button"
-                      id="editKeyBtn"
-                      className="linkBtn"
-                      onClick={() => {
-                        setApiKeySaved(false);
-                        setApiKeyInput("");
-                      }}
-                    >
-                      Edit
-                    </button>
-                  )}
+                  <span className="successLabel">Loaded from .env</span>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="meta">
+                  Set <code>API_KEY</code> or <code>OPENROUTER_API_KEY</code> in{" "}
+                  <code>.env</code> (OpenRouter <code>sk-or-…</code> or Anthropic{" "}
+                  <code>sk-ant-…</code>), then restart <code>npm run dev</code>.
+                </div>
+              )}
+            </div>
             {apiKeyError && (
               <div
                 id="apiKeyError"

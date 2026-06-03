@@ -1,6 +1,6 @@
 import StudyAgent from "@/components/StudyAgent";
+import { resolveApiKeyFromEnv } from "@/lib/constants";
 
 export default function Home() {
-  const apiKeyFromEnv = process.env.API_KEY ?? "";
-  return <StudyAgent apiKeyFromEnv={apiKeyFromEnv} />;
+  return <StudyAgent apiKeyFromEnv={resolveApiKeyFromEnv()} />;
 }

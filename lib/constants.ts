@@ -18,7 +18,7 @@ Rules:
 
 export const OPENROUTER_API = {
   endpoint: "https://openrouter.ai/api/v1/chat/completions",
-  model: "anthropic/claude-3.5-sonnet",
+  model: "anthropic/claude-sonnet-4.6",
   maxTokens: 1024,
 } as const;
 
@@ -41,8 +41,12 @@ export function detectApiProvider(apiKey: string): ApiProvider {
   );
 }
 
+/** Server-side only: resolve the API key from the environment (API_KEY, then OPENROUTER_API_KEY). */
+export function resolveApiKeyFromEnv(): string {
+  return process.env.API_KEY ?? process.env.OPENROUTER_API_KEY ?? "";
+}
+
 export const THEME_KEY = "study-agent-theme";
-export const API_KEY_STORAGE = "claudeApiKey";
 export const PROMPT_STORAGE = "studyPromptTemplate";
 
 export type VaultNote = { name: string; path: string; content: string };
